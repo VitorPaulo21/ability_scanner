@@ -252,7 +252,76 @@ class _HomeScreenState extends State<HomeScreen> {
         key: key,
         onQRViewCreated: (controller) {
           this.controller = controller;
+          
           controller.scannedDataStream.listen((scanData) {
+            // controller.pauseCamera();
+
+            // showDialog(
+            //     context: context,
+            //     builder: (ctx) {
+            //       TextEditingController addController = TextEditingController();
+            //       addController.text = "1";
+            //       GlobalKey<FormState> formkey = GlobalKey<FormState>();
+            //       return AlertDialog(
+            //         title: Text(scanData.code.toString()),
+            //         content: Form(
+            //           key: formkey,
+            //           child: Column(
+            //             mainAxisSize: MainAxisSize.min,
+            //             mainAxisAlignment: MainAxisAlignment.center,
+            //             crossAxisAlignment: CrossAxisAlignment.start,
+            //             children: [
+            //               Text("Adicionar Produto:"),
+            //               const SizedBox(
+            //                 height: 10,
+            //               ),
+            //               TextFormField(
+            //                 controller: addController,
+            //                 keyboardType: const TextInputType.numberWithOptions(
+            //                     decimal: true),
+            //                 decoration: InputDecoration(
+            //                   border: OutlineInputBorder(
+            //                       borderRadius: const BorderRadius.all(
+            //                           Radius.circular(10)),
+            //                       borderSide: BorderSide(
+            //                           color:
+            //                               Theme.of(context).colorScheme.primary,
+            //                           width: 2)),
+            //                   label: Text("Qauntidade:"),
+            //                 ),
+            //                 validator: (txt) {
+            //                   if ((double.tryParse(txt ?? "d")) == null) {
+            //                     return "Valor Inválido";
+            //                   }
+            //                 },
+            //               ),
+            //             ],
+            //           ),
+            //         ),
+            //         actions: [
+            //           TextButton(
+            //             onPressed: () {
+            //               bool isvalid =
+            //                   formkey.currentState?.validate() ?? false;
+            //               if (isvalid) {
+            //                 produtosProvider.addProduto(Produto(
+            //                     scanData.code.toString(),
+            //                     quantidade: double.parse(addController.text)));
+            //               }
+            //               Navigator.of(context).pop();
+            //             },
+            //             child: const Text("Ok"),
+            //           ),
+            //           TextButton(
+            //             onPressed: () {
+            //               Navigator.of(context).pop();
+            //             },
+            //             child: const Text("Cancelar"),
+            //           ),
+            //         ],
+            //       );
+            //     }).then((value) => controller.resumeCamera());
+          }).onData((scanData) {
             controller.pauseCamera();
 
             showDialog(
