@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:assets_audio_player/assets_audio_player.dart';
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({Key? key}) : super(key: key);
@@ -20,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   QRViewController? controller;
   GlobalKey key = GlobalKey();
   bool isAwayting = false;
+  bool continuousScanner = false;
 
   @override
   Widget build(BuildContext context) {
@@ -61,9 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
           FocusManager.instance.primaryFocus?.unfocus();
         },
         child: Scaffold(
-            body: CustomScrollView(
-          slivers: [
-            SliverAppBar(
+            appBar: AppBar(
               title: const Text("Ability Scanner"),
               centerTitle: true,
               leading: Padding(
@@ -74,16 +74,44 @@ class _HomeScreenState extends State<HomeScreen> {
                 IconButton(
                     onPressed: () {}, icon: const Icon(Icons.exit_to_app))
               ],
-              expandedHeight: kToolbarHeight + 200,
-              flexibleSpace: Padding(
-                padding: EdgeInsets.only(
-                    top: kToolbarHeight +
-                        MediaQuery.of(context).viewPadding.top),
-                child: BarcodeScanner(context, produtosProvider),
-              ),
+            ),
+            body: Column(
+              children: [
+                BarcodeScanner(context, produtosProvider),
+                Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Row(
+                    children: [
+                      CupertinoSwitch(
+                          value: continuousScanner,
+                          onChanged: (value) {
+                            setState(() {
+                              continuousScanner = value;
+                            });
+                          }),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text("Escanear Continuo"),
+                      if (!continuousScanner)
+                        Expanded(
+                            child: Container(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton(
+                              onPressed: () {
+                                if (code.isEmpty || code == "") {
+                                  return;
+                                }
+                                scanDialog(context, code, produtosProvider);
+                              },
+                              child: Text("Escanear")),
+                        ))
+                    ],
+                  ),
+                ),
+                Expanded(child: scannedCodes(produtosProvider, context))
+              ],
             )
-          ],
-        )
             // bottomNavigationBar:
             //     botomScanBar(avaliableScreenSpace, context, produtosProvider),
             ),
@@ -93,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Padding scannedCodes(ProdutoProvider produtosProvider, BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(0.0),
       child: ListView.builder(
           itemCount: produtosProvider.produtos.length,
           itemBuilder: (ctx, index) {
@@ -249,10 +277,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ? 200
           : 110,
       child: QRView(
+
         key: key,
         onQRViewCreated: (controller) {
           this.controller = controller;
           
+
           controller.scannedDataStream.listen((scanData) {
             // controller.pauseCamera();
 
@@ -322,73 +352,14 @@ class _HomeScreenState extends State<HomeScreen> {
             //       );
             //     }).then((value) => controller.resumeCamera());
           }).onData((scanData) {
+            if (!continuousScanner) {
+              code = scanData.code ?? "";
+              return;
+            }
             controller.pauseCamera();
 
-            showDialog(
-                context: context,
-                builder: (ctx) {
-                  TextEditingController addController = TextEditingController();
-                  addController.text = "1";
-                  GlobalKey<FormState> formkey = GlobalKey<FormState>();
-                  return AlertDialog(
-                    title: Text(scanData.code.toString()),
-                    content: Form(
-                      key: formkey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Adicionar Produto:"),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          TextFormField(
-                            controller: addController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(10)),
-                                  borderSide: BorderSide(
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                      width: 2)),
-                              label: Text("Qauntidade:"),
-                            ),
-                            validator: (txt) {
-                              if ((double.tryParse(txt ?? "d")) == null) {
-                                return "Valor Inválido";
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          bool isvalid =
-                              formkey.currentState?.validate() ?? false;
-                          if (isvalid) {
-                            produtosProvider.addProduto(Produto(
-                                scanData.code.toString(),
-                                quantidade: double.parse(addController.text)));
-                          }
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text("Ok"),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text("Cancelar"),
-                      ),
-                    ],
-                  );
-                }).then((value) => controller.resumeCamera());
+            scanDialog(context, scanData.code.toString(), produtosProvider)
+                .then((value) => controller.resumeCamera());
           });
         },
         cameraFacing: CameraFacing.back,
@@ -399,6 +370,81 @@ class _HomeScreenState extends State<HomeScreen> {
             cutOutHeight: 85,
             cutOutWidth: MediaQuery.of(context).size.width * 0.8),
       ),
+    );
+  }
+
+  Future<dynamic> scanDialog(
+      BuildContext context, String scanData, ProdutoProvider produtosProvider) {
+    playScanSound();
+    return showDialog(
+        context: context,
+        builder: (ctx) {
+          TextEditingController addController = TextEditingController();
+          addController.text = "1";
+          GlobalKey<FormState> formkey = GlobalKey<FormState>();
+          return AlertDialog(
+            title: Text(scanData),
+            content: Form(
+              key: formkey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Adicionar Produto:"),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  TextFormField(
+                    controller: addController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(10)),
+                          borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2)),
+                      label: Text("Qauntidade:"),
+                    ),
+                    validator: (txt) {
+                      if ((double.tryParse(txt ?? "d")) == null) {
+                        return "Valor Inválido";
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  bool isvalid = formkey.currentState?.validate() ?? false;
+                  if (isvalid) {
+                    produtosProvider.addProduto(Produto(
+                        scanData,
+                        quantidade: double.parse(addController.text)));
+                  }
+                  Navigator.of(context).pop();
+                },
+                child: const Text("Ok"),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text("Cancelar"),
+              ),
+            ],
+          );
+        });
+  }
+
+  void playScanSound() async {
+    AssetsAudioPlayer.playAndForget(
+      Audio("lib/assets/beep.mp3"),
+      
     );
   }
 
