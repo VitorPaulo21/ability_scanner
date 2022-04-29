@@ -1,5 +1,6 @@
 import 'package:barcode_scanner/models/produto.dart';
 import 'package:barcode_scanner/providers/produto_provider.dart';
+import 'package:barcode_scanner/providers/settings_provider.dart';
 import 'package:barcode_scanner/screens/home_screen.dart';
 import 'package:barcode_scanner/utils/app_routes.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<ProdutoProvider>(
           create: (ctx) => ProdutoProvider(),
+        ),
+        ChangeNotifierProvider<SettingsProvider>(
+          create: (ctx) => SettingsProvider(),
         ),
       ],
       child: MaterialApp(

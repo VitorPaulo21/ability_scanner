@@ -14,7 +14,7 @@ class ProdutoProvider with ChangeNotifier {
       notifyListeners();
       return;
     }
-    _produtos.add(produto);
+    _produtos.insert(0, produto);
     notifyListeners();
   }
 

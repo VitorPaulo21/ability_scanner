@@ -1,5 +1,7 @@
+import 'package:barcode_scanner/components/app_drawer.dart';
 import 'package:barcode_scanner/models/produto.dart';
 import 'package:barcode_scanner/providers/produto_provider.dart';
+import 'package:barcode_scanner/providers/settings_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
         kToolbarHeight -
         MediaQuery.of(context).viewInsets.bottom;
     ProdutoProvider produtosProvider = Provider.of<ProdutoProvider>(context);
+    GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
     return WillPopScope(
       onWillPop: () async {
@@ -63,18 +66,25 @@ class _HomeScreenState extends State<HomeScreen> {
           FocusManager.instance.primaryFocus?.unfocus();
         },
         child: Scaffold(
+            key: scaffoldKey,
             appBar: AppBar(
               title: const Text("Ability Scanner"),
               centerTitle: true,
-              leading: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Image.asset("lib/assets/abilityIcon.png"),
+              leading: InkWell(
+                onTap: () {
+                  scaffoldKey.currentState?.openDrawer();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Image.asset("lib/assets/abilityIcon.png"),
+                ),
               ),
               actions: [
                 IconButton(
                     onPressed: () {}, icon: const Icon(Icons.exit_to_app))
               ],
             ),
+            drawer: AppDrawer(),
             body: Column(
               children: [
                 BarcodeScanner(context, produtosProvider),
@@ -277,11 +287,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ? 200
           : 110,
       child: QRView(
-
         key: key,
         onQRViewCreated: (controller) {
           this.controller = controller;
-          
 
           controller.scannedDataStream.listen((scanData) {
             // controller.pauseCamera();
@@ -373,9 +381,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<dynamic> scanDialog(
-      BuildContext context, String scanData, ProdutoProvider produtosProvider) {
+  Future<dynamic> scanDialog(BuildContext context, String scanData,
+      ProdutoProvider produtosProvider) async {
     playScanSound();
+    if (!Provider.of<SettingsProvider>(context, listen: false).quantityAsk &&
+        !Provider.of<SettingsProvider>(context, listen: false).validityAsk) {
+      produtosProvider.addProduto(Produto(scanData));
+      return await Future<void>.delayed(Duration(milliseconds: 1000));
+    }
     return showDialog(
         context: context,
         builder: (ctx) {
@@ -414,6 +427,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                     },
                   ),
+                  if (Provider.of<SettingsProvider>(context, listen: false)
+                      .validityAsk)
+                    InputDatePickerFormField(
+                      firstDate:
+                          DateTime.now().subtract(Duration(days: 365 * 6)),
+                      lastDate: DateTime.now().add(Duration(days: 365 * 12)),
+                      fieldHintText: "dd/mm/aaaa",
+                      fieldLabelText: "Insira a Data:",
+                    )
                 ],
               ),
             ),
@@ -422,8 +444,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () {
                   bool isvalid = formkey.currentState?.validate() ?? false;
                   if (isvalid) {
-                    produtosProvider.addProduto(Produto(
-                        scanData,
+                    produtosProvider.addProduto(Produto(scanData,
                         quantidade: double.parse(addController.text)));
                   }
                   Navigator.of(context).pop();
@@ -444,7 +465,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void playScanSound() async {
     AssetsAudioPlayer.playAndForget(
       Audio("lib/assets/beep.mp3"),
-      
     );
   }
 
