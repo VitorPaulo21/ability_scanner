@@ -4,6 +4,7 @@ import 'package:barcode_scanner/providers/settings_provider.dart';
 import 'package:barcode_scanner/screens/home_screen.dart';
 import 'package:barcode_scanner/utils/app_routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -25,6 +26,12 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
+        supportedLocales: [const Locale("pt", "BR")],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate
+        ],
         title: 'Ability Scanner',
         theme: ThemeData(
           colorScheme: Theme.of(context).colorScheme.copyWith(

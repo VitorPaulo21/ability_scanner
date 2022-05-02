@@ -1,4 +1,3 @@
-
 import 'package:barcode_scanner/components/app_drawer.dart';
 import 'package:barcode_scanner/models/produto.dart';
 import 'package:barcode_scanner/providers/produto_provider.dart';
@@ -434,10 +433,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(
                     height: 10,
                   ),
-                  
                   if (Provider.of<SettingsProvider>(context, listen: false)
                       .validityAsk)
-                      
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,74 +443,26 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(
                           height: 10,
                         ),
-                        Row(
-                          children: [
-                            Flexible(
-                              flex: 1,
-                              child: DropdownButtonFormField<int>(
-                                alignment: Alignment.center,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(10)),
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        width: 2),
+                        TextButton(
+                            onPressed: () {
+                              showModalBottomSheet(
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(20),
+                                      topRight: Radius.circular(20),
+                                    ),
                                   ),
-                                  label: Text("Mês: "),
-                                ),
-                                items: List<DropdownMenuItem<int>>.generate(
-                                    12,
-                                    (index) => DropdownMenuItem(
-                                          alignment: Alignment.center,
-                                          child: Center(
-                                              child: Text(
-                                            (index + 1).toString(),
-                                            textAlign: TextAlign.center,
-                                          )),
-                                          value: index + 1,
-                                        )),
-                                onChanged: (day) {},
-                                value: 1,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            Flexible(
-                              flex: 1,
-                              child: DropdownButtonFormField<int>(
-                                alignment: Alignment.center,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(10)),
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        width: 2),
-                                  ),
-                                  label: Text("Ano: "),
-                                ),
-                                items: List<DropdownMenuItem<int>>.generate(
-                                    40,
-                                    (index) => DropdownMenuItem(
-                                          child: Text(DateFormat("yyyy").format(
-                                              DateTime(
-                                                  (DateTime.now().year - 10) +
-                                                      index))),
-                                          value: (DateTime.now().year - 10) +
-                                              index,
-                                        )),
-                                onChanged: (day) {},
-                                value: DateTime.now().year,
-                              ),
-                            ),
-                          ],
-                        ),
+                                  context: context,
+                                  builder: (ctx) {
+                                    return CupertinoDatePicker(
+                                      onDateTimeChanged: (date) {},
+                                      dateOrder: DatePickerDateOrder.dmy,
+                                      mode: CupertinoDatePickerMode.date,
+                                      use24hFormat: true,
+                                    );
+                                  });
+                            },
+                            child: Text("00/00/0000")),
                       ],
                     ),
                 ],
