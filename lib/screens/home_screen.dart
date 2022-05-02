@@ -1,3 +1,4 @@
+
 import 'package:barcode_scanner/components/app_drawer.dart';
 import 'package:barcode_scanner/models/produto.dart';
 import 'package:barcode_scanner/providers/produto_provider.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({Key? key}) : super(key: key);
@@ -408,34 +410,112 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(
                     height: 10,
                   ),
-                  TextFormField(
-                    controller: addController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(10)),
-                          borderSide: BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 2)),
-                      label: Text("Qauntidade:"),
+                  if (Provider.of<SettingsProvider>(context, listen: false)
+                      .quantityAsk)
+                    TextFormField(
+                      controller: addController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(10)),
+                            borderSide: BorderSide(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 2)),
+                        label: Text("Qauntidade:"),
+                      ),
+                      validator: (txt) {
+                        if ((double.tryParse(txt ?? "d")) == null) {
+                          return "Valor Inválido";
+                        }
+                      },
                     ),
-                    validator: (txt) {
-                      if ((double.tryParse(txt ?? "d")) == null) {
-                        return "Valor Inválido";
-                      }
-                    },
+                  const SizedBox(
+                    height: 10,
                   ),
+                  
                   if (Provider.of<SettingsProvider>(context, listen: false)
                       .validityAsk)
-                    InputDatePickerFormField(
-                      firstDate:
-                          DateTime.now().subtract(Duration(days: 365 * 6)),
-                      lastDate: DateTime.now().add(Duration(days: 365 * 12)),
-                      fieldHintText: "dd/mm/aaaa",
-                      fieldLabelText: "Insira a Data:",
-                    )
+                      
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("validade: "),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Row(
+                          children: [
+                            Flexible(
+                              flex: 1,
+                              child: DropdownButtonFormField<int>(
+                                alignment: Alignment.center,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(10)),
+                                    borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        width: 2),
+                                  ),
+                                  label: Text("Mês: "),
+                                ),
+                                items: List<DropdownMenuItem<int>>.generate(
+                                    12,
+                                    (index) => DropdownMenuItem(
+                                          alignment: Alignment.center,
+                                          child: Center(
+                                              child: Text(
+                                            (index + 1).toString(),
+                                            textAlign: TextAlign.center,
+                                          )),
+                                          value: index + 1,
+                                        )),
+                                onChanged: (day) {},
+                                value: 1,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 10,
+                            ),
+                            Flexible(
+                              flex: 1,
+                              child: DropdownButtonFormField<int>(
+                                alignment: Alignment.center,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(10)),
+                                    borderSide: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        width: 2),
+                                  ),
+                                  label: Text("Ano: "),
+                                ),
+                                items: List<DropdownMenuItem<int>>.generate(
+                                    40,
+                                    (index) => DropdownMenuItem(
+                                          child: Text(DateFormat("yyyy").format(
+                                              DateTime(
+                                                  (DateTime.now().year - 10) +
+                                                      index))),
+                                          value: (DateTime.now().year - 10) +
+                                              index,
+                                        )),
+                                onChanged: (day) {},
+                                value: DateTime.now().year,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),
