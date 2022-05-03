@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   GlobalKey key = GlobalKey();
   bool isAwayting = false;
   bool continuousScanner = false;
+  DateTime? validade;
 
   @override
   Widget build(BuildContext context) {
@@ -33,9 +34,11 @@ class _HomeScreenState extends State<HomeScreen> {
         MediaQuery.of(context).viewInsets.bottom;
     ProdutoProvider produtosProvider = Provider.of<ProdutoProvider>(context);
     GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-
+    continuousScanner =
+        Provider.of<SettingsProvider>(context).continuousScanner;
     return WillPopScope(
       onWillPop: () async {
+
         FocusManager.instance.primaryFocus?.unfocus();
         bool closeReturn = false;
         await showDialog<bool>(
@@ -93,13 +96,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: EdgeInsets.all(8),
                   child: Row(
                     children: [
-                      CupertinoSwitch(
-                          value: continuousScanner,
-                          onChanged: (value) {
-                            setState(() {
-                              continuousScanner = value;
+                      Consumer<SettingsProvider>(
+                          builder: (ctx, settingsProvider, _) {
+                        return CupertinoSwitch(
+                            value: settingsProvider.continuousScanner,
+                            onChanged: (value) {
+                              setState(() {
+                                settingsProvider.continuousScanner = value;
+                              });
                             });
-                          }),
+                      }),
                       SizedBox(
                         width: 10,
                       ),
@@ -400,72 +406,104 @@ class _HomeScreenState extends State<HomeScreen> {
             title: Text(scanData),
             content: Form(
               key: formkey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Adicionar Produto:"),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  if (Provider.of<SettingsProvider>(context, listen: false)
-                      .quantityAsk)
-                    TextFormField(
-                      controller: addController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(10)),
-                            borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.primary,
-                                width: 2)),
-                        label: Text("Qauntidade:"),
-                      ),
-                      validator: (txt) {
-                        if ((double.tryParse(txt ?? "d")) == null) {
-                          return "Valor Inválido";
-                        }
-                      },
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Adicionar Produto:"),
+                    const SizedBox(
+                      height: 10,
                     ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  if (Provider.of<SettingsProvider>(context, listen: false)
-                      .validityAsk)
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text("validade: "),
-                        const SizedBox(
-                          height: 10,
+                    if (Provider.of<SettingsProvider>(context, listen: false)
+                        .quantityAsk)
+                      TextFormField(
+                        controller: addController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(10)),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 2)),
+                          label: Text("Qauntidade:"),
                         ),
-                        TextButton(
-                            onPressed: () {
-                              showModalBottomSheet(
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(20),
-                                      topRight: Radius.circular(20),
-                                    ),
-                                  ),
-                                  context: context,
-                                  builder: (ctx) {
-                                    return CupertinoDatePicker(
-                                      onDateTimeChanged: (date) {},
-                                      dateOrder: DatePickerDateOrder.dmy,
-                                      mode: CupertinoDatePickerMode.date,
-                                      use24hFormat: true,
-                                    );
-                                  });
-                            },
-                            child: Text("00/00/0000")),
-                      ],
+                        validator: (txt) {
+                          if ((double.tryParse(txt ?? "d")) == null) {
+                            return "Valor Inválido";
+                          }
+                        },
+                      ),
+                    const SizedBox(
+                      height: 10,
                     ),
-                ],
+                    if (Provider.of<SettingsProvider>(context, listen: false)
+                        .validityAsk)
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text("validade: "),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          OutlinedButton(
+                              onPressed: () {
+                                showModalBottomSheet(
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(20),
+                                        topRight: Radius.circular(20),
+                                      ),
+                                    ),
+                                    context: context,
+                                    builder: (ctx) {
+                                      DateTime? currentDate;
+                                      return ClipRRect(
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(20),
+                                          topRight: Radius.circular(20),
+                                        ),
+                                        child: Scaffold(
+                                          body: CupertinoDatePicker(
+                                            onDateTimeChanged: (date) {
+                                              currentDate = date;
+                                            },
+                                            dateOrder: DatePickerDateOrder.dmy,
+                                            mode: CupertinoDatePickerMode.date,
+                                            use24hFormat: true,
+                                            
+                                          ),
+                                          bottomSheet: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              ElevatedButton(
+                                                  onPressed: () {
+                                                    validade = currentDate;
+                                                  },
+                                                  child: Text("Selecionar")),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    });
+                              },
+                              style: OutlinedButton.styleFrom(
+                                  primary:
+                                      Theme.of(context).colorScheme.primary,
+                                  side: const BorderSide(color: Colors.grey),
+                                  shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(10)))),
+                              child: const Text("00/00/0000")),
+                        ],
+                      ),
+                  ],
+                ),
               ),
             ),
             actions: [
@@ -474,7 +512,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   bool isvalid = formkey.currentState?.validate() ?? false;
                   if (isvalid) {
                     produtosProvider.addProduto(Produto(scanData,
-                        quantidade: double.parse(addController.text)));
+                        quantidade: double.parse(addController.text),
+                        validade: validade));
                   }
                   Navigator.of(context).pop();
                 },
@@ -488,7 +527,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           );
-        });
+        }).then((value) => validade = null);
   }
 
   void playScanSound() async {

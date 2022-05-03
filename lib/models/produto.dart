@@ -1,5 +1,6 @@
 class Produto {
   String barcode;
   double quantidade;
-  Produto(this.barcode, {this.quantidade = 1});
+  DateTime? validade;
+  Produto(this.barcode, {this.quantidade = 1, this.validade});
 }
