@@ -402,109 +402,136 @@ class _HomeScreenState extends State<HomeScreen> {
           TextEditingController addController = TextEditingController();
           addController.text = "1";
           GlobalKey<FormState> formkey = GlobalKey<FormState>();
+          GlobalKey<State> buttonKey = GlobalKey<State>();
+
           return AlertDialog(
             title: Text(scanData),
-            content: Form(
-              key: formkey,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Adicionar Produto:"),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    if (Provider.of<SettingsProvider>(context, listen: false)
-                        .quantityAsk)
-                      TextFormField(
-                        controller: addController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(10)),
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  width: 2)),
-                          label: Text("Qauntidade:"),
-                        ),
-                        validator: (txt) {
-                          if ((double.tryParse(txt ?? "d")) == null) {
-                            return "Valor Inválido";
-                          }
-                        },
+            content: StatefulBuilder(builder: (context, state) {
+              return Form(
+                key: formkey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Adicionar Produto:"),
+                      const SizedBox(
+                        height: 10,
                       ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    if (Provider.of<SettingsProvider>(context, listen: false)
-                        .validityAsk)
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const Text("validade: "),
-                          const SizedBox(
-                            height: 10,
+                      if (Provider.of<SettingsProvider>(context, listen: false)
+                          .quantityAsk)
+                        TextFormField(
+                          controller: addController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(10)),
+                                borderSide: BorderSide(
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                    width: 2)),
+                            label: Text("Qauntidade:"),
                           ),
-                          OutlinedButton(
-                              onPressed: () {
-                                showModalBottomSheet(
-                                    shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(20),
-                                        topRight: Radius.circular(20),
-                                      ),
-                                    ),
-                                    context: context,
-                                    builder: (ctx) {
-                                      DateTime? currentDate;
-                                      return ClipRRect(
-                                        borderRadius: const BorderRadius.only(
+                          validator: (txt) {
+                            if ((double.tryParse(txt ?? "d")) == null) {
+                              return "Valor Inválido";
+                            }
+                          },
+                        ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      if (Provider.of<SettingsProvider>(context, listen: false)
+                          .validityAsk)
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Text("validade: "),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            OutlinedButton(
+                                onPressed: () {
+                                  showModalBottomSheet(
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.only(
                                           topLeft: Radius.circular(20),
                                           topRight: Radius.circular(20),
                                         ),
-                                        child: Scaffold(
-                                          body: CupertinoDatePicker(
-                                            onDateTimeChanged: (date) {
-                                              currentDate = date;
-                                            },
-                                            dateOrder: DatePickerDateOrder.dmy,
-                                            mode: CupertinoDatePickerMode.date,
-                                            use24hFormat: true,
-                                            
+                                      ),
+                                      context: context,
+                                        
+                                      builder: (ctx) {
+                                        DateTime? currentDate = DateTime.now();
+
+                                        return ClipRRect(
+                                          borderRadius: const BorderRadius.only(
+                                            topLeft: Radius.circular(20),
+                                            topRight: Radius.circular(20),
                                           ),
-                                          bottomSheet: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              ElevatedButton(
-                                                  onPressed: () {
-                                                    validade = currentDate;
-                                                  },
-                                                  child: Text("Selecionar")),
-                                            ],
+                                          child: Scaffold(
+                                            body: CupertinoDatePicker(
+                                              initialDateTime: DateTime.now(),
+                                              
+                                              onDateTimeChanged: (date) {
+                                               
+                                                 
+                                                 
+                                                currentDate = date;
+                                                    
+                                                  
+                                              },
+                                              dateOrder:
+                                                  DatePickerDateOrder.dmy,
+                                              mode:
+                                                  CupertinoDatePickerMode.date,
+                                              use24hFormat: true,
+                                            ),
+                                            bottomSheet: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                ElevatedButton(
+                                                      
+                                                    onPressed: () {
+                                                      state(() {
+                                                          
+                                                        validade = currentDate;
+                                                      });
+
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                    child: Text("Selecionar")),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                    });
-                              },
-                              style: OutlinedButton.styleFrom(
-                                  primary:
-                                      Theme.of(context).colorScheme.primary,
-                                  side: const BorderSide(color: Colors.grey),
-                                  shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(10)))),
-                              child: const Text("00/00/0000")),
-                        ],
-                      ),
-                  ],
+                                        );
+                                      });
+                                },
+                                 
+                                style: OutlinedButton.styleFrom(
+                                    primary:
+                                        Theme.of(context).colorScheme.primary,
+                                    side: const BorderSide(color: Colors.grey),
+                                    shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10)))),
+                                child: Text(validade == null
+                                    ? "00/00/0000"
+                                    : DateFormat("dd/MM/yyyy")
+                                        .format(validade!))),
+                          ],
+                        ),
+                    ],
+                  ),
                 ),
-              ),
+              );
+            }
             ),
             actions: [
               TextButton(
