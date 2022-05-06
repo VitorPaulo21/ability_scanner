@@ -1,5 +1,7 @@
 import 'package:barcode_scanner/models/produto.dart';
+import 'package:barcode_scanner/utils/write_data.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 
 class ProdutoProvider with ChangeNotifier {
   List<Produto> _produtos = [];
@@ -25,7 +27,7 @@ class ProdutoProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
+  
   void acrescentBarcode(String barcode, {double quantity = 1}) {
     try {
       _produtos
@@ -120,5 +122,13 @@ class ProdutoProvider with ChangeNotifier {
       notifyListeners();
     }
     return removed;
+  }
+  void export() {
+    WriteData.writeData(_produtos.map<String>((product) {
+      String data = product.validade == null
+          ? ""
+          : DateFormat("dd/MM/yyyy").format(product.validade!).toString();
+      return "=\"${product.barcode}\";${product.quantidade};$data";
+    }).toList());
   }
 }

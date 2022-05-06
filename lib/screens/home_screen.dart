@@ -85,7 +85,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               actions: [
                 IconButton(
-                    onPressed: () {}, icon: const Icon(Icons.exit_to_app))
+                    onPressed: () {
+                      produtosProvider.export();
+                    },
+                    icon: const Icon(Icons.exit_to_app))
               ],
             ),
             drawer: AppDrawer(),

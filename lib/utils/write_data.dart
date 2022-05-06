@@ -1,18 +1,28 @@
 import 'dart:io';
 
+
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class WriteData {
-  Future<String> get InternalDirectory async {
+  static Future<String> get InternalDirectory async {
     Directory directory = await getApplicationDocumentsDirectory();
     return directory.path;
   }
 
-  Future<File> get getFile async {
+  static Future<File> get getFile async {
     String path = await InternalDirectory;
 
-    return File("$path/data.txt");
+    return File("$path/data.csv");
   }
 
-  void writeData(String data) async {}
+  static void writeData(List<String> data) async {
+    String dataString = "";
+    File file = await getFile;
+    data.forEach((element) {
+      dataString = "$dataString$element\n";
+    });
+    await file.writeAsString(dataString);
+    await Share.shareFiles([file.path]);
+  }
 }
