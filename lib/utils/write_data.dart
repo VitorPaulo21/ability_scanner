@@ -10,19 +10,20 @@ class WriteData {
     return directory.path;
   }
 
-  static Future<File> get getFile async {
+  static Future<File> getFile(String extension) async {
     String path = await InternalDirectory;
 
-    return File("$path/data.csv");
+    return File("$path/data$extension");
   }
 
-  static void writeData(List<String> data) async {
+  static void writeData(List<String> data, String extension) async {
     String dataString = "";
-    File file = await getFile;
+    File file = await getFile(extension);
     data.forEach((element) {
       dataString = "$dataString$element\n";
     });
     await file.writeAsString(dataString);
     await Share.shareFiles([file.path]);
+    
   }
 }

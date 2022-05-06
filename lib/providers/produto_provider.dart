@@ -7,7 +7,7 @@ class ProdutoProvider with ChangeNotifier {
   List<Produto> _produtos = [];
 
   List<Produto> get produtos => [..._produtos];
- 
+
   void addProduto(Produto produto) {
     if (_produtos.any((prod) => prod.barcode == produto.barcode)) {
       _produtos
@@ -27,7 +27,7 @@ class ProdutoProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   void acrescentBarcode(String barcode, {double quantity = 1}) {
     try {
       _produtos
@@ -123,12 +123,18 @@ class ProdutoProvider with ChangeNotifier {
     }
     return removed;
   }
-  void export() {
+
+  void export(String extension) {
+    
     WriteData.writeData(_produtos.map<String>((product) {
+          String code =
+              extension == ".txt" ? product.barcode : "=\"${product.barcode}\"";
       String data = product.validade == null
           ? ""
           : DateFormat("dd/MM/yyyy").format(product.validade!).toString();
-      return "=\"${product.barcode}\";${product.quantidade};$data";
-    }).toList());
+          return "$code;${product.quantidade};$data";
+        }).toList(),
+        extension);
+   
   }
 }

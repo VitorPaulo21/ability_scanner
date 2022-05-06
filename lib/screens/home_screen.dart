@@ -26,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isAwayting = false;
   bool continuousScanner = false;
   DateTime? validade;
+  
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ProdutoProvider produtosProvider = Provider.of<ProdutoProvider>(context);
     GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
     continuousScanner =
-        Provider.of<SettingsProvider>(context).continuousScanner;
+        Provider.of<SettingsProvider>(context, listen: false).continuousScanner;
     return WillPopScope(
       onWillPop: () async {
 
@@ -86,7 +87,11 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 IconButton(
                     onPressed: () {
-                      produtosProvider.export();
+                      produtosProvider.export(
+                          Provider.of<SettingsProvider>(context, listen: false)
+                                  .fileFormat
+                              ? ".csv"
+                              : ".txt");
                     },
                     icon: const Icon(Icons.exit_to_app))
               ],
@@ -99,16 +104,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: EdgeInsets.all(8),
                   child: Row(
                     children: [
-                      Consumer<SettingsProvider>(
-                          builder: (ctx, settingsProvider, _) {
-                        return CupertinoSwitch(
-                            value: settingsProvider.continuousScanner,
+                      
+                          
+                      CupertinoSwitch(
+                          value: continuousScanner,
                             onChanged: (value) {
+                            Provider.of<SettingsProvider>(context,
+                                    listen: false)
+                                .continuousScanner = value;
                               setState(() {
-                                settingsProvider.continuousScanner = value;
-                              });
+                              continuousScanner = value;
                             });
-                      }),
+                          }),
+                      
                       SizedBox(
                         width: 10,
                       ),

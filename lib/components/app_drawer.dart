@@ -13,7 +13,9 @@ class AppDrawer extends StatefulWidget {
 class _AppDrawerState extends State<AppDrawer> {
   @override
   Widget build(BuildContext context) {
-    SettingsProvider settingsProvider = Provider.of<SettingsProvider>(context);
+    SettingsProvider settingsProvider = Provider.of<SettingsProvider>(
+      context,
+    );
     return Drawer(
         child: Scaffold(
       appBar: AppBar(
@@ -83,7 +85,53 @@ class _AppDrawerState extends State<AppDrawer> {
                 title: const Text("Perguntar Validade"),
                 subtitle: const Text(
                     "Pergunta a validade do produto após escanear o códico"),
-              )
+              ),
+              SizedBox(
+                height: 15,
+              ),
+              Column(children: [
+                Text("Extenção de Exportação"),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Text(".txt"),
+                        Container(
+                          width: 120,
+                          child: Consumer<SettingsProvider>(
+                              builder: (ctx, seetings, _) {
+                            return Slider(
+                              value: settingsProvider.fileFormat ? 1 : 0,
+                              onChanged: (value) {
+                                settingsProvider.fileFormat =
+                                    value == 0 ? false : true;
+                              },
+                              divisions: 1,
+                              label:
+                                  settingsProvider.fileFormat ? ".csv" : ".txt",
+                            );
+                          }),
+                        ),
+                        Text(".csv")
+                      ],
+                    ),
+                  ],
+                ),
+              ]),
+              ListTile(
+                leading: CupertinoSwitch(
+                    value: settingsProvider.validityAsk,
+                    onChanged: (value) {
+                      settingsProvider.validityAsk = value;
+                    }),
+                title: const Text("Perguntar Validade"),
+                subtitle: const Text(
+                    "Pergunta a validade do produto após escanear o códico"),
+              ),
             ],
           ),
         ),
