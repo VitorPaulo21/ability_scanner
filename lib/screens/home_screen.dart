@@ -91,7 +91,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           Provider.of<SettingsProvider>(context, listen: false)
                                   .fileFormat
                               ? ".csv"
-                              : ".txt");
+                            : ".txt",
+                        Provider.of<SettingsProvider>(context, listen: false)
+                                .fileSeparator
+                            ? ","
+                            : ";",
+                      );
                     },
                     icon: const Icon(Icons.exit_to_app))
               ],

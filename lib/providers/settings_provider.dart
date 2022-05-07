@@ -6,10 +6,12 @@ class SettingsProvider with ChangeNotifier {
   bool _validityAsk = false;
   bool _continuousScanner = false;
   bool _fileFormat = true;
+  bool _fileSeparator = false;
 
   bool get quantityAsk => _quantityAsk;
   bool get validityAsk => _validityAsk;
   bool get fileFormat => _fileFormat;
+  bool get fileSeparator => _fileSeparator;
   bool get continuousScanner => _continuousScanner;
   SettingsProvider() {
     sync();
@@ -40,6 +42,12 @@ class SettingsProvider with ChangeNotifier {
     SharedPreferences.getInstance()
         .then((prefs) => prefs.setBool("fileFormat", _continuousScanner));
   }
+  set fileSeparator(bool value) {
+    _fileSeparator = value;
+    notifyListeners();
+    SharedPreferences.getInstance()
+        .then((prefs) => prefs.setBool("fileSeparator", _continuousScanner));
+  }
 
   void sync() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -47,6 +55,7 @@ class SettingsProvider with ChangeNotifier {
     _validityAsk = prefs.getBool("validityAsk") ?? false;
     _continuousScanner = prefs.getBool("continuousScanner") ?? false;
     _fileFormat = prefs.getBool("fileFormat") ?? false;
+    _fileSeparator = prefs.getBool("fileSeparator") ?? false;
     notifyListeners();
   }
 }

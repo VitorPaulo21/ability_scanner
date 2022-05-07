@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:barcode_scanner/providers/settings_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class AppDrawer extends StatefulWidget {
@@ -11,6 +14,9 @@ class AppDrawer extends StatefulWidget {
 }
 
 class _AppDrawerState extends State<AppDrawer> {
+  String item1 = "7891035";
+  String item2 = "9.0";
+  String item3 = DateFormat("dd/MM/yyyy").format(DateTime.now());
   @override
   Widget build(BuildContext context) {
     SettingsProvider settingsProvider = Provider.of<SettingsProvider>(
@@ -86,7 +92,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 subtitle: const Text(
                     "Pergunta a validade do produto após escanear o códico"),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 15,
               ),
               Column(children: [
@@ -116,26 +122,137 @@ class _AppDrawerState extends State<AppDrawer> {
                             );
                           }),
                         ),
-                        Text(".csv")
+                        Text(
+                          ".csv\n(Excel)",
+                          textAlign: TextAlign.center,
+                        )
                       ],
                     ),
                   ],
                 ),
               ]),
-              ListTile(
-                leading: CupertinoSwitch(
-                    value: settingsProvider.validityAsk,
-                    onChanged: (value) {
-                      settingsProvider.validityAsk = value;
-                    }),
-                title: const Text("Perguntar Validade"),
-                subtitle: const Text(
-                    "Pergunta a validade do produto após escanear o códico"),
+              const SizedBox(
+                height: 15,
               ),
+              Column(children: [
+                Text("Separador do arquivo de saida"),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        const Text(
+                          ";",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                          ),
+                        ),
+                        Container(
+                          width: 120,
+                          child: Consumer<SettingsProvider>(
+                              builder: (ctx, seetings, _) {
+                            return Slider(
+                              value: settingsProvider.fileSeparator ? 1 : 0,
+                              onChanged: (value) {
+                                settingsProvider.fileSeparator =
+                                    value == 0 ? false : true;
+                              },
+                              divisions: 1,
+                              label: settingsProvider.fileSeparator ? "," : ";",
+                            );
+                          }),
+                        ),
+                        const Text(
+                          ",",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    DragTarget<String>(onWillAccept: (data) {
+                      setState(() {
+                        item1 = data ?? "";
+                      });
+                      return true;
+                    }, builder: (ctx, candidate, rejected) {
+                      return Drager(item1);
+                    }),
+                    const SizedBox(width: 5),
+                    Text(settingsProvider.fileSeparator ? "," : ";"),
+                    const SizedBox(width: 5),
+                    DragTarget<String>(onWillAccept: (data) {
+                      setState(() {
+                        item2 = data ?? "";
+                      });
+                      return true;
+                    }, builder: (ctx, candidate, rejected) {
+                      return Drager(item2);
+                    }),
+                    const SizedBox(width: 5),
+                    Text(settingsProvider.fileSeparator ? "," : ";"),
+                    const SizedBox(width: 5),
+                    DragTarget<String>(onWillAccept: (data) {
+                      setState(() {
+                        item3 = data ?? "";
+                      });
+                      return true;
+                    }, builder: (ctx, candidate, rejected) {
+                      return Drager(item3);
+                    }),
+                  ],
+                )
+              ]),
             ],
           ),
         ),
       ),
     ));
+  }
+
+  Widget Drager(String data) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 3),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey, width: 1),
+        borderRadius: BorderRadius.all(
+          Radius.circular(2),
+        ),
+      ),
+      child: Draggable(
+        maxSimultaneousDrags: 1,
+        data: data,
+        child: Text(data),
+        feedback: Container(
+          width: 30,
+          height: 20,
+          color: Colors.grey,
+          child: FittedBox(
+              child: Icon(
+            Icons.abc,
+            color: Colors.white,
+          )),
+        ),
+        childWhenDragging: Container(
+          alignment: Alignment.center,
+          color: Colors.grey[800],
+          width: 30,
+          child: const Text(
+            "...",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ),
+    );
   }
 }

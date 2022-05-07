@@ -124,17 +124,19 @@ class ProdutoProvider with ChangeNotifier {
     return removed;
   }
 
-  void export(String extension) {
+  void export(String extension, String separator) {
     
     WriteData.writeData(_produtos.map<String>((product) {
           String code =
               extension == ".txt" ? product.barcode : "=\"${product.barcode}\"";
+         
       String data = product.validade == null
           ? ""
           : DateFormat("dd/MM/yyyy").format(product.validade!).toString();
-          return "$code;${product.quantidade};$data";
+        return "$code$separator${product.quantidade}$separator$data";
         }).toList(),
-        extension);
+      extension,
+    );
    
   }
 }
