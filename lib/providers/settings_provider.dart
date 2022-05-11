@@ -7,12 +7,18 @@ class SettingsProvider with ChangeNotifier {
   bool _continuousScanner = false;
   bool _fileFormat = true;
   bool _fileSeparator = false;
+  List<String> _layoutOrganization = [
+    "Códico",
+    "Quant",
+    "Data",
+  ];
 
   bool get quantityAsk => _quantityAsk;
   bool get validityAsk => _validityAsk;
   bool get fileFormat => _fileFormat;
   bool get fileSeparator => _fileSeparator;
   bool get continuousScanner => _continuousScanner;
+  List<String> get layoutOrganization => _layoutOrganization;
   SettingsProvider() {
     sync();
   }
@@ -32,21 +38,30 @@ class SettingsProvider with ChangeNotifier {
 
   set continuousScanner(bool value) {
     _continuousScanner = value;
-    
+
     SharedPreferences.getInstance().then(
         (prefs) => prefs.setBool("continuousScanner", _continuousScanner));
   }
+
   set fileFormat(bool value) {
     _fileFormat = value;
     notifyListeners();
     SharedPreferences.getInstance()
-        .then((prefs) => prefs.setBool("fileFormat", _continuousScanner));
+        .then((prefs) => prefs.setBool("fileFormat", _fileFormat));
   }
+
   set fileSeparator(bool value) {
     _fileSeparator = value;
     notifyListeners();
     SharedPreferences.getInstance()
-        .then((prefs) => prefs.setBool("fileSeparator", _continuousScanner));
+        .then((prefs) => prefs.setBool("fileSeparator", _fileSeparator));
+  }
+
+  set layoutOrganization(List<String> value) {
+    _layoutOrganization = value;
+    notifyListeners();
+    SharedPreferences.getInstance().then((prefs) =>
+        prefs.setStringList("layoutOrganization", _layoutOrganization));
   }
 
   void sync() async {
@@ -56,6 +71,13 @@ class SettingsProvider with ChangeNotifier {
     _continuousScanner = prefs.getBool("continuousScanner") ?? false;
     _fileFormat = prefs.getBool("fileFormat") ?? false;
     _fileSeparator = prefs.getBool("fileSeparator") ?? false;
+    _layoutOrganization = prefs.getStringList("layoutOrganization") ??
+        [
+          "Códico",
+          "Quant",
+          "Data",
+        ];
+
     notifyListeners();
   }
 }

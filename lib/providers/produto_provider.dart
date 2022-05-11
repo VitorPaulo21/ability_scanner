@@ -9,15 +9,28 @@ class ProdutoProvider with ChangeNotifier {
   List<Produto> get produtos => [..._produtos];
 
   void addProduto(Produto produto) {
-    if (_produtos.any((prod) => prod.barcode == produto.barcode)) {
-      _produtos
-          .firstWhere((prod) => prod.barcode == produto.barcode)
-          .quantidade += produto.quantidade;
+    if (produto.validade != null) {
+      if (_produtos.any((prod) => prod.validade == null
+          ? false
+          : DateFormat("dd/MM/yyyy").format(prod.validade!) ==
+                  DateFormat("dd/MM/yyyy").format(produto.validade!) &&
+              prod.barcode == produto.barcode)) {
+        acrescentBarcodeValidity(produto.barcode,
+            quantity: produto.quantidade, validity: produto.validade!);
+      } else {
+        _produtos.insert(0, produto);
+        notifyListeners();
+        return;
+      }
+    } else if (_produtos.any(
+        (prod) => prod.barcode == produto.barcode && prod.validade == null)) {
+      acrescentBarcodeNoValidity(produto.barcode, quantity: produto.quantidade);
+    } else {
+      _produtos.insert(0, produto);
       notifyListeners();
       return;
     }
-    _produtos.insert(0, produto);
-    notifyListeners();
+   
   }
 
   void acrescentProduto(Produto produto, {double quantity = 1}) {
@@ -32,6 +45,39 @@ class ProdutoProvider with ChangeNotifier {
     try {
       _produtos
           .firstWhere((produto) => produto.barcode == barcode)
+          .quantidade += quantity;
+
+      notifyListeners();
+    } catch (e) {
+      if (e.runtimeType == StateError) {
+        return;
+      }
+    }
+  }
+  void acrescentBarcodeNoValidity(String barcode, {double quantity = 1}) {
+    try {
+      _produtos
+          .firstWhere((produto) =>
+              produto.barcode == barcode && produto.validade == null)
+          .quantidade += quantity;
+
+      notifyListeners();
+    } catch (e) {
+      if (e.runtimeType == StateError) {
+        return;
+      }
+    }
+  }
+
+  void acrescentBarcodeValidity(String barcode,
+      {required DateTime validity, double quantity = 1}) {
+    try {
+      _produtos
+          .firstWhere((produto) => produto.validade == null
+              ? false
+              : produto.barcode == barcode &&
+                  DateFormat("dd/MM/yyyy").format(produto.validade!) ==
+                      DateFormat("dd/MM/yyyy").format(validity))
           .quantidade += quantity;
 
       notifyListeners();
@@ -124,19 +170,37 @@ class ProdutoProvider with ChangeNotifier {
     return removed;
   }
 
-  void export(String extension, String separator) {
-    
-    WriteData.writeData(_produtos.map<String>((product) {
-          String code =
-              extension == ".txt" ? product.barcode : "=\"${product.barcode}\"";
-         
-      String data = product.validade == null
-          ? ""
-          : DateFormat("dd/MM/yyyy").format(product.validade!).toString();
-        return "$code$separator${product.quantidade}$separator$data";
-        }).toList(),
+  void export(String extension, String separator, List<String> layout) {
+    WriteData.writeData(
+      _produtos.map<String>((product) {
+        String code =
+            extension == ".txt" ? product.barcode : "=\"${product.barcode}\"";
+
+        String data = product.validade == null
+            ? ""
+            : DateFormat("dd/MM/yyyy").format(product.validade!).toString();
+            
+        String item1 = "";
+        String item2 = "";
+        String item3 = "";
+        item1 = layout[0] == "Codico"
+            ? code
+            : layout[0] == "Quant"
+                ? product.quantidade.toString()
+                : data;
+        item2 = layout[1] == "Codico"
+            ? code
+            : layout[1] == "Quant"
+                ? product.quantidade.toString()
+                : data;
+        item3 = layout[2] == "Codico"
+            ? code
+            : layout[2] == "Quant"
+                ? product.quantidade.toString()
+                : data;
+        return "$item1$separator$item2$separator$item3";
+      }).toList(),
       extension,
     );
-   
   }
 }

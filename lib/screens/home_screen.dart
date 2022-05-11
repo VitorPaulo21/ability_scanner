@@ -96,6 +96,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 .fileSeparator
                             ? ","
                             : ";",
+                          Provider.of<SettingsProvider>(context, listen: false)
+                              .layoutOrganization
                       );
                     },
                     icon: const Icon(Icons.exit_to_app))

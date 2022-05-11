@@ -14,9 +14,14 @@ class AppDrawer extends StatefulWidget {
 }
 
 class _AppDrawerState extends State<AppDrawer> {
-  String item1 = "7891035";
-  String item2 = "9.0";
-  String item3 = DateFormat("dd/MM/yyyy").format(DateTime.now());
+  List<String> layoutOrganization = [
+    "Codico",
+    "Quant",
+    "Data",
+  ];
+  // String item1 = "7891035";
+  // String item2 = "9.0";
+  // String item3 = DateFormat("dd/MM/yyyy").format(DateTime.now());
   @override
   Widget build(BuildContext context) {
     SettingsProvider settingsProvider = Provider.of<SettingsProvider>(
@@ -153,9 +158,7 @@ class _AppDrawerState extends State<AppDrawer> {
                         ),
                         Container(
                           width: 120,
-                          child: Consumer<SettingsProvider>(
-                              builder: (ctx, seetings, _) {
-                            return Slider(
+                            child: Slider(
                               value: settingsProvider.fileSeparator ? 1 : 0,
                               onChanged: (value) {
                                 settingsProvider.fileSeparator =
@@ -163,8 +166,8 @@ class _AppDrawerState extends State<AppDrawer> {
                               },
                               divisions: 1,
                               label: settingsProvider.fileSeparator ? "," : ";",
-                            );
-                          }),
+                            )
+                          
                         ),
                         const Text(
                           ",",
@@ -180,35 +183,40 @@ class _AppDrawerState extends State<AppDrawer> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    DragTarget<String>(onWillAccept: (data) {
-                      setState(() {
-                        item1 = data ?? "";
-                      });
-                      return true;
+                    DragTarget<String>(onAccept: (data) {
+                      layoutOrganization[layoutOrganization.indexOf(data)] =
+                          layoutOrganization[0];
+                      layoutOrganization[0] = data;
+
+                      settingsProvider.layoutOrganization = layoutOrganization;
                     }, builder: (ctx, candidate, rejected) {
-                      return Drager(item1);
+                      return Drager(layoutOrganization[0]);
                     }),
                     const SizedBox(width: 5),
                     Text(settingsProvider.fileSeparator ? "," : ";"),
                     const SizedBox(width: 5),
-                    DragTarget<String>(onWillAccept: (data) {
-                      setState(() {
-                        item2 = data ?? "";
-                      });
-                      return true;
+                    DragTarget<String>(onAccept: (data) {
+                      layoutOrganization[layoutOrganization.indexOf(data)] =
+                          layoutOrganization[1];
+                      layoutOrganization[1] = data;
+                      settingsProvider.layoutOrganization = layoutOrganization;
+                      
+                      
                     }, builder: (ctx, candidate, rejected) {
-                      return Drager(item2);
+                      return Drager(layoutOrganization[1]);
                     }),
                     const SizedBox(width: 5),
                     Text(settingsProvider.fileSeparator ? "," : ";"),
                     const SizedBox(width: 5),
-                    DragTarget<String>(onWillAccept: (data) {
-                      setState(() {
-                        item3 = data ?? "";
-                      });
-                      return true;
+                    DragTarget<String>(onAccept: (data) {
+                      layoutOrganization[layoutOrganization.indexOf(data)] =
+                          layoutOrganization[2];
+                      layoutOrganization[2] = data;
+                      settingsProvider.layoutOrganization = layoutOrganization;
+                   
+                     
                     }, builder: (ctx, candidate, rejected) {
-                      return Drager(item3);
+                      return Drager(layoutOrganization[2]);
                     }),
                   ],
                 )
