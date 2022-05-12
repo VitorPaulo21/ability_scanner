@@ -8,7 +8,7 @@ class SettingsProvider with ChangeNotifier {
   bool _fileFormat = true;
   bool _fileSeparator = false;
   List<String> _layoutOrganization = [
-    "Códico",
+    "Codico",
     "Quant",
     "Data",
   ];
@@ -73,11 +73,11 @@ class SettingsProvider with ChangeNotifier {
     _fileSeparator = prefs.getBool("fileSeparator") ?? false;
     _layoutOrganization = prefs.getStringList("layoutOrganization") ??
         [
-          "Códico",
+          "Codico",
           "Quant",
           "Data",
         ];
-
+        
     notifyListeners();
   }
 }

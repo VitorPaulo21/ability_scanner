@@ -27,6 +27,8 @@ class _AppDrawerState extends State<AppDrawer> {
     SettingsProvider settingsProvider = Provider.of<SettingsProvider>(
       context,
     );
+    layoutOrganization = Provider.of<SettingsProvider>(context, listen: false)
+        .layoutOrganization;
     return Drawer(
         child: Scaffold(
       appBar: AppBar(
@@ -179,6 +181,9 @@ class _AppDrawerState extends State<AppDrawer> {
                       ],
                     ),
                   ],
+                ),
+                SizedBox(
+                  height: 10,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
