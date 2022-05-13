@@ -26,7 +26,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isAwayting = false;
   bool continuousScanner = false;
   DateTime? validade;
-  
+  GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  bool isScanning = false;
+  List<Produto> produtos = [];
 
   @override
   Widget build(BuildContext context) {
@@ -34,13 +36,12 @@ class _HomeScreenState extends State<HomeScreen> {
         kToolbarHeight -
         MediaQuery.of(context).viewInsets.bottom;
     ProdutoProvider produtosProvider = Provider.of<ProdutoProvider>(context);
-    GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+    produtos = produtosProvider.produtos;
     continuousScanner =
         Provider.of<SettingsProvider>(context, listen: false).continuousScanner;
     return WillPopScope(
       onWillPop: () async {
-
-        FocusManager.instance.primaryFocus?.unfocus();
+        // FocusManager.instance.primaryFocus?.unfocus();
         bool closeReturn = false;
         await showDialog<bool>(
             context: context,
@@ -85,62 +86,148 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               actions: [
-                IconButton(
-                    onPressed: () {
-                      produtosProvider.export(
-                          Provider.of<SettingsProvider>(context, listen: false)
-                                  .fileFormat
-                              ? ".csv"
-                            : ".txt",
-                        Provider.of<SettingsProvider>(context, listen: false)
-                                .fileSeparator
-                            ? ","
-                            : ";",
-                          Provider.of<SettingsProvider>(context, listen: false)
-                              .layoutOrganization
-                      );
-                    },
-                    icon: const Icon(Icons.exit_to_app))
+                if (produtosProvider.produtos.isNotEmpty)
+                  IconButton(
+                      color: Colors.red,
+                      onPressed: () {
+                        showDialog<bool>(
+                            context: context,
+                            builder: (ctx) {
+                              return AlertDialog(
+                                title: Text("Alerta"),
+                                content: Text(
+                                    "Deseja limpar a lista de Códigos de barras?"),
+                                actions: [
+                                  TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context,
+                                                rootNavigator: true)
+                                            .pop(true);
+                                      },
+                                      child: Text("Sim")),
+                                  TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context,
+                                                rootNavigator: true)
+                                            .pop(false);
+                                      },
+                                      child: Text("Não"))
+                                ],
+                              );
+                            }).then((value) {
+                          if (value ?? false) {
+                            produtosProvider.clean();
+                          }
+                        });
+                      },
+                      icon: Icon(Icons.delete_forever_outlined)),
+                if (produtosProvider.produtos.isNotEmpty)
+                  IconButton(
+                      onPressed: () {
+                        produtosProvider.export(
+                            Provider.of<SettingsProvider>(context,
+                                        listen: false)
+                                    .fileFormat
+                                ? ".csv"
+                                : ".txt",
+                            Provider.of<SettingsProvider>(context,
+                                        listen: false)
+                                    .fileSeparator
+                                ? ","
+                                : ";",
+                            Provider.of<SettingsProvider>(context,
+                                    listen: false)
+                                .layoutOrganization);
+                      },
+                      icon: const Icon(Icons.exit_to_app))
               ],
             ),
             drawer: AppDrawer(),
             body: Column(
               children: [
-                BarcodeScanner(context, produtosProvider),
+                if (!isScanning) BarcodeScanner(context, produtosProvider),
                 Padding(
                   padding: EdgeInsets.all(8),
                   child: Row(
                     children: [
-                      
-                          
-                      CupertinoSwitch(
-                          value: continuousScanner,
-                            onChanged: (value) {
-                            Provider.of<SettingsProvider>(context,
-                                    listen: false)
-                                .continuousScanner = value;
+                      if (isScanning)
+                        Expanded(
+                          child: CupertinoTextField(
+                            onChanged: (txt) {
                               setState(() {
-                              continuousScanner = value;
-                            });
-                          }),
-                      
-                      SizedBox(
+                                if (txt.isEmpty) {
+                                  produtos = produtosProvider.produtos;
+                                } else {
+                                  produtos = produtos
+                                      .where((element) =>
+                                          element.barcode.contains(txt))
+                                      .toList();
+                                }
+                              });
+                            },
+                            prefix: const Padding(
+                              padding: EdgeInsets.only(left: 10),
+                              child: Icon(Icons.search),
+                            ),
+                            suffix: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  isScanning = false;
+                                  produtos = produtosProvider.produtos;
+                                });
+                              },
+                              child: const Padding(
+                                padding: EdgeInsets.only(right: 10),
+                                child: Icon(Icons.clear),
+                              ),
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(90),
+                              ),
+                              border: Border.all(color: Colors.grey),
+                            ),
+                          ),
+                        ),
+                      if (!isScanning)
+                        CupertinoSwitch(
+                            value: continuousScanner,
+                            onChanged: (value) {
+                              Provider.of<SettingsProvider>(context,
+                                      listen: false)
+                                  .continuousScanner = value;
+                              setState(() {
+                                continuousScanner = value;
+                              });
+                            }),
+                      const SizedBox(
                         width: 10,
                       ),
-                      Text("Escanear Continuo"),
-                      if (!continuousScanner)
+                      if (!isScanning)
+                        const FittedBox(child: Text("Escanear Continuo")),
+                      if (!isScanning)
                         Expanded(
-                            child: Container(
-                          alignment: Alignment.centerRight,
-                          child: ElevatedButton(
+                          child: Container(
+                            alignment: Alignment.centerRight,
+                            child: IconButton(
                               onPressed: () {
-                                if (code.isEmpty || code == "") {
-                                  return;
-                                }
-                                scanDialog(context, code, produtosProvider);
+                                setState(() {
+                                  isScanning = true;
+                                });
                               },
-                              child: Text("Escanear")),
-                        ))
+                              icon: Icon(Icons.search),
+                            ),
+                          ),
+                        ),
+                      ElevatedButton(
+                          onPressed: () {
+                            if (code.isEmpty || code == "") {
+                              return;
+                            }
+                            scanDialog(context, code, produtosProvider);
+                          },
+                          child: Text(isScanning ? "Inserrir" : "Escanear")),
                     ],
                   ),
                 ),
@@ -158,11 +245,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.all(0.0),
       child: ListView.builder(
-          itemCount: produtosProvider.produtos.length,
+          itemCount: produtos.length,
           itemBuilder: (ctx, index) {
             TextEditingController quantityController = TextEditingController();
             bool isInteger(num value) => (value % 1) == 0;
-            if (isInteger(produtosProvider.produtos[index].quantidade)) {
+            if (isInteger(produtos[index].quantidade)) {
               quantityController.text = produtosProvider
                   .produtos[index].quantidade
                   .toInt()
@@ -173,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   .toStringAsFixed(2);
             }
             return ListTile(
-              title: Text(produtosProvider.produtos[index].barcode),
+              title: Text(produtos[index].barcode),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -186,15 +273,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       controller: quantityController,
                       prefix: GestureDetector(
                         onTap: () {
-                          produtosProvider.acrescentProduto(
-                              produtosProvider.produtos[index]);
+                          produtosProvider.acrescentProduto(produtos[index]);
                         },
                         child: Icon(Icons.add),
                       ),
                       suffix: GestureDetector(
                         onTap: () {
-                          if (produtosProvider.produtos[index].quantidade ==
-                              1) {
+                          if (produtos[index].quantidade == 1) {
                             showDialog<bool>(
                                 context: context,
                                 builder: (ctx) {
@@ -223,13 +308,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   );
                                 }).then((value) {
                               if (value ?? false) {
-                                produtosProvider.reduceProduto(
-                                    produtosProvider.produtos[index]);
+                                produtosProvider.reduceProduto(produtos[index]);
                               }
                             });
                           } else {
-                            produtosProvider.reduceProduto(
-                                produtosProvider.produtos[index]);
+                            produtosProvider.reduceProduto(produtos[index]);
                           }
                         },
                         child: Icon(Icons.remove),
@@ -239,7 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         double? value = double.tryParse(text);
                         if (value != null) {
                           produtosProvider.setQuantityByProduto(
-                              produtosProvider.produtos[index], value);
+                              produtos[index], value);
                         } else {
                           showDialog(
                               context: context,
@@ -289,8 +372,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                           }).then((value) {
                         if (value ?? false) {
-                          produtosProvider
-                              .removeProduto(produtosProvider.produtos[index]);
+                          produtosProvider.removeProduto(produtos[index]);
                         }
                       });
                     },
@@ -420,7 +502,6 @@ class _HomeScreenState extends State<HomeScreen> {
           TextEditingController addController = TextEditingController();
           addController.text = "1";
           GlobalKey<FormState> formkey = GlobalKey<FormState>();
-          GlobalKey<State> buttonKey = GlobalKey<State>();
 
           return AlertDialog(
             title: Text(scanData),
@@ -482,7 +563,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ),
                                       context: context,
-                                        
                                       builder: (ctx) {
                                         DateTime? currentDate = DateTime.now();
 
@@ -494,14 +574,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           child: Scaffold(
                                             body: CupertinoDatePicker(
                                               initialDateTime: DateTime.now(),
-                                              
                                               onDateTimeChanged: (date) {
-                                               
-                                                 
-                                                 
                                                 currentDate = date;
-                                                    
-                                                  
                                               },
                                               dateOrder:
                                                   DatePickerDateOrder.dmy,
@@ -514,10 +588,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   MainAxisAlignment.center,
                                               children: [
                                                 ElevatedButton(
-                                                      
                                                     onPressed: () {
                                                       state(() {
-                                                          
                                                         validade = currentDate;
                                                       });
 
@@ -531,7 +603,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                         );
                                       });
                                 },
-                                 
                                 style: OutlinedButton.styleFrom(
                                     primary:
                                         Theme.of(context).colorScheme.primary,
@@ -549,8 +620,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               );
-            }
-            ),
+            }),
             actions: [
               TextButton(
                 onPressed: () {
@@ -560,13 +630,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         quantidade: double.parse(addController.text),
                         validade: validade));
                   }
-                  Navigator.of(context).pop();
+                  Navigator.of(context, rootNavigator: true).pop();
                 },
                 child: const Text("Ok"),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(context, rootNavigator: true).pop();
                 },
                 child: const Text("Cancelar"),
               ),

@@ -15,7 +15,7 @@ class ProdutoProvider with ChangeNotifier {
     _produtos = await Hive.box<Produto>("produtos").values.toList();
     notifyListeners();
   }
-
+  
   void addProduto(Produto produto) {
     if (produto.validade != null) {
       if (_produtos.any((prod) => prod.validade == null
@@ -25,17 +25,16 @@ class ProdutoProvider with ChangeNotifier {
               prod.barcode == produto.barcode)) {
         acrescentBarcodeValidity(produto.barcode,
             quantity: produto.quantidade, validity: produto.validade!);
-        produto.save();
+        
       } else {
         
         _produtos.insert(0, produto);
-        Hive.box<Produto>("produtos").add(produto);
         notifyListeners();
+        Hive.box<Produto>("produtos").add(produto);
       }
     } else if (_produtos.any(
         (prod) => prod.barcode == produto.barcode && prod.validade == null)) {
       acrescentBarcodeNoValidity(produto.barcode, quantity: produto.quantidade);
-      produto.save();
     } else {
       _produtos.insert(0, produto);
       Hive.box<Produto>("produtos").add(produto);
@@ -223,5 +222,11 @@ class ProdutoProvider with ChangeNotifier {
       }).toList(),
       extension,
     );
+  }
+
+  void clean() {
+    _produtos.clear();
+    Hive.box<Produto>("produtos").clear();
+    notifyListeners();
   }
 }

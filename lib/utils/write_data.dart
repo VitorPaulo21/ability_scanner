@@ -24,6 +24,5 @@ class WriteData {
     });
     await file.writeAsString(dataString);
     await Share.shareFiles([file.path]);
-    
   }
 }
