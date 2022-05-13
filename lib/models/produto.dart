@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 part 'produto.g.dart';
 
 @HiveType(typeId: 0)
-class Produto {
+class Produto extends HiveObject {
   @HiveField(0)
   String barcode;
   @HiveField(1)

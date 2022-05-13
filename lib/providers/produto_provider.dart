@@ -1,12 +1,20 @@
 import 'package:barcode_scanner/models/produto.dart';
 import 'package:barcode_scanner/utils/write_data.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 
 class ProdutoProvider with ChangeNotifier {
   List<Produto> _produtos = [];
 
   List<Produto> get produtos => [..._produtos];
+  ProdutoProvider() {
+    syncToHive();
+  }
+  void syncToHive() async {
+    _produtos = await Hive.box<Produto>("produtos").values.toList();
+    notifyListeners();
+  }
 
   void addProduto(Produto produto) {
     if (produto.validade != null) {
@@ -17,36 +25,40 @@ class ProdutoProvider with ChangeNotifier {
               prod.barcode == produto.barcode)) {
         acrescentBarcodeValidity(produto.barcode,
             quantity: produto.quantidade, validity: produto.validade!);
+        produto.save();
       } else {
+        
         _produtos.insert(0, produto);
+        Hive.box<Produto>("produtos").add(produto);
         notifyListeners();
-        return;
       }
     } else if (_produtos.any(
         (prod) => prod.barcode == produto.barcode && prod.validade == null)) {
       acrescentBarcodeNoValidity(produto.barcode, quantity: produto.quantidade);
+      produto.save();
     } else {
       _produtos.insert(0, produto);
+      Hive.box<Produto>("produtos").add(produto);
       notifyListeners();
-      return;
     }
-   
   }
 
   void acrescentProduto(Produto produto, {double quantity = 1}) {
     if (_produtos.contains(produto)) {
       _produtos.firstWhere((element) => element == produto).quantidade +=
           quantity;
+      produto.save();
       notifyListeners();
     }
   }
 
   void acrescentBarcode(String barcode, {double quantity = 1}) {
     try {
-      _produtos
+      (_produtos
           .firstWhere((produto) => produto.barcode == barcode)
-          .quantidade += quantity;
-
+            ..quantidade += quantity)
+          .save();
+      
       notifyListeners();
     } catch (e) {
       if (e.runtimeType == StateError) {
@@ -54,12 +66,14 @@ class ProdutoProvider with ChangeNotifier {
       }
     }
   }
+
   void acrescentBarcodeNoValidity(String barcode, {double quantity = 1}) {
     try {
-      _produtos
+      (_produtos
           .firstWhere((produto) =>
               produto.barcode == barcode && produto.validade == null)
-          .quantidade += quantity;
+            ..quantidade += quantity)
+          .save();
 
       notifyListeners();
     } catch (e) {
@@ -72,13 +86,14 @@ class ProdutoProvider with ChangeNotifier {
   void acrescentBarcodeValidity(String barcode,
       {required DateTime validity, double quantity = 1}) {
     try {
-      _produtos
+      (_produtos
           .firstWhere((produto) => produto.validade == null
               ? false
               : produto.barcode == barcode &&
                   DateFormat("dd/MM/yyyy").format(produto.validade!) ==
                       DateFormat("dd/MM/yyyy").format(validity))
-          .quantidade += quantity;
+            ..quantidade += quantity)
+          .save();
 
       notifyListeners();
     } catch (e) {
@@ -92,6 +107,7 @@ class ProdutoProvider with ChangeNotifier {
     if (_produtos.contains(produto)) {
       _produtos.firstWhere((element) => element == produto).quantidade -=
           quantity;
+      produto.save();
       if (_produtos.firstWhere((element) => element == produto).quantidade <=
           0) {
         removeProduto(produto);
@@ -107,6 +123,7 @@ class ProdutoProvider with ChangeNotifier {
       actualProduct =
           _produtos.firstWhere((produto) => produto.barcode == barcode);
       actualProduct.quantidade -= quantity;
+      actualProduct.save();
       if (actualProduct.quantidade <= 0) {
         removeBarcode(barcode);
         return actualProduct.quantidade;
@@ -124,6 +141,7 @@ class ProdutoProvider with ChangeNotifier {
     if (_produtos.contains(produto)) {
       _produtos.firstWhere((element) => element == produto).quantidade =
           quantity;
+      produto.save();
       if (_produtos.firstWhere((element) => element == produto).quantidade <=
           0) {
         removeProduto(produto);
@@ -135,8 +153,9 @@ class ProdutoProvider with ChangeNotifier {
 
   void setQuantityByBarcode(String barcode, double quantity) {
     if (_produtos.any((element) => element.barcode == barcode)) {
-      _produtos.firstWhere((element) => element.barcode == barcode).quantidade =
-          quantity;
+      (_produtos.firstWhere((element) => element.barcode == barcode)
+            ..quantidade = quantity)
+          .save();
       if (_produtos
               .firstWhere((element) => element.barcode == barcode)
               .quantidade <=
@@ -152,6 +171,7 @@ class ProdutoProvider with ChangeNotifier {
     try {
       Produto produto =
           _produtos.firstWhere((produto) => produto.barcode == barcode);
+      produto.delete();
       notifyListeners();
       return _produtos.remove(produto);
     } catch (e) {
@@ -164,6 +184,7 @@ class ProdutoProvider with ChangeNotifier {
 
   bool removeProduto(Produto prod) {
     bool removed = _produtos.remove(prod);
+    prod.delete();
     if (removed) {
       notifyListeners();
     }
@@ -179,7 +200,7 @@ class ProdutoProvider with ChangeNotifier {
         String data = product.validade == null
             ? ""
             : DateFormat("dd/MM/yyyy").format(product.validade!).toString();
-            
+
         String item1 = "";
         String item2 = "";
         String item3 = "";

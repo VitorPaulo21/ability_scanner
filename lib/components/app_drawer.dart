@@ -84,7 +84,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     }),
                 title: const Text("Perguntar Quantidade"),
                 subtitle: const Text(
-                    "Pergunta a quantidade do produto após escanear o códico"),
+                    "Pergunta a quantidade do produto após escanear o código"),
               ),
               const SizedBox(
                 height: 10,
@@ -97,7 +97,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     }),
                 title: const Text("Perguntar Validade"),
                 subtitle: const Text(
-                    "Pergunta a validade do produto após escanear o códico"),
+                    "Pergunta a validade do produto após escanear o código"),
               ),
               const SizedBox(
                 height: 15,
@@ -129,7 +129,7 @@ class _AppDrawerState extends State<AppDrawer> {
                             );
                           }),
                         ),
-                        Text(
+                        const Text(
                           ".csv\n(Excel)",
                           textAlign: TextAlign.center,
                         )
@@ -142,7 +142,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 height: 15,
               ),
               Column(children: [
-                Text("Separador do arquivo de saida"),
+                Text("Separador do arquivo de saída"),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
@@ -182,7 +182,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     ),
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 10,
                 ),
                 Row(
@@ -191,11 +191,14 @@ class _AppDrawerState extends State<AppDrawer> {
                     DragTarget<String>(onAccept: (data) {
                       layoutOrganization[layoutOrganization.indexOf(data)] =
                           layoutOrganization[0];
-                      layoutOrganization[0] = data;
+                      layoutOrganization[0] =
+                          data == "Código" ? "Codico" : data;
 
                       settingsProvider.layoutOrganization = layoutOrganization;
                     }, builder: (ctx, candidate, rejected) {
-                      return Drager(layoutOrganization[0]);
+                      return Drager(layoutOrganization[0] == "Codico"
+                          ? "Código"
+                          : layoutOrganization[0]);
                     }),
                     const SizedBox(width: 5),
                     Text(settingsProvider.fileSeparator ? "," : ";"),
@@ -203,12 +206,15 @@ class _AppDrawerState extends State<AppDrawer> {
                     DragTarget<String>(onAccept: (data) {
                       layoutOrganization[layoutOrganization.indexOf(data)] =
                           layoutOrganization[1];
-                      layoutOrganization[1] = data;
+                      layoutOrganization[1] =
+                          data == "Código" ? "Codico" : data;
                       settingsProvider.layoutOrganization = layoutOrganization;
                       
                       
                     }, builder: (ctx, candidate, rejected) {
-                      return Drager(layoutOrganization[1]);
+                      return Drager(layoutOrganization[1] == "Codico"
+                          ? "Código"
+                          : layoutOrganization[1]);
                     }),
                     const SizedBox(width: 5),
                     Text(settingsProvider.fileSeparator ? "," : ";"),
@@ -216,12 +222,15 @@ class _AppDrawerState extends State<AppDrawer> {
                     DragTarget<String>(onAccept: (data) {
                       layoutOrganization[layoutOrganization.indexOf(data)] =
                           layoutOrganization[2];
-                      layoutOrganization[2] = data;
+                      layoutOrganization[2] =
+                          data == "Código" ? "Codico" : data;
                       settingsProvider.layoutOrganization = layoutOrganization;
                    
                      
                     }, builder: (ctx, candidate, rejected) {
-                      return Drager(layoutOrganization[2]);
+                      return Drager(layoutOrganization[2] == "Codico"
+                          ? "Código"
+                          : layoutOrganization[2]);
                     }),
                   ],
                 )
