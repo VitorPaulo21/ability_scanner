@@ -28,7 +28,6 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime? validade;
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   bool isScanning = false;
-  List<Produto> produtos = [];
 
   @override
   Widget build(BuildContext context) {
@@ -36,11 +35,12 @@ class _HomeScreenState extends State<HomeScreen> {
         kToolbarHeight -
         MediaQuery.of(context).viewInsets.bottom;
     ProdutoProvider produtosProvider = Provider.of<ProdutoProvider>(context);
-    produtos = produtosProvider.produtos;
+
     continuousScanner =
         Provider.of<SettingsProvider>(context, listen: false).continuousScanner;
     return WillPopScope(
       onWillPop: () async {
+        
         // FocusManager.instance.primaryFocus?.unfocus();
         bool closeReturn = false;
         await showDialog<bool>(
@@ -155,14 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: CupertinoTextField(
                             onChanged: (txt) {
                               setState(() {
-                                if (txt.isEmpty) {
-                                  produtos = produtosProvider.produtos;
-                                } else {
-                                  produtos = produtos
-                                      .where((element) =>
-                                          element.barcode.contains(txt))
-                                      .toList();
-                                }
+                                
                               });
                             },
                             prefix: const Padding(
@@ -173,7 +166,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: () {
                                 setState(() {
                                   isScanning = false;
-                                  produtos = produtosProvider.produtos;
                                 });
                               },
                               child: const Padding(
@@ -245,11 +237,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.all(0.0),
       child: ListView.builder(
-          itemCount: produtos.length,
+          itemCount: produtosProvider.produtos.length,
           itemBuilder: (ctx, index) {
             TextEditingController quantityController = TextEditingController();
             bool isInteger(num value) => (value % 1) == 0;
-            if (isInteger(produtos[index].quantidade)) {
+            if (isInteger(produtosProvider.produtos[index].quantidade)) {
               quantityController.text = produtosProvider
                   .produtos[index].quantidade
                   .toInt()
@@ -260,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   .toStringAsFixed(2);
             }
             return ListTile(
-              title: Text(produtos[index].barcode),
+              title: Text(produtosProvider.produtos[index].barcode),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -273,13 +265,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       controller: quantityController,
                       prefix: GestureDetector(
                         onTap: () {
-                          produtosProvider.acrescentProduto(produtos[index]);
+                          produtosProvider.acrescentProduto(
+                              produtosProvider.produtos[index]);
                         },
                         child: Icon(Icons.add),
                       ),
                       suffix: GestureDetector(
                         onTap: () {
-                          if (produtos[index].quantidade == 1) {
+                          if (produtosProvider.produtos[index].quantidade ==
+                              1) {
                             showDialog<bool>(
                                 context: context,
                                 builder: (ctx) {
@@ -308,11 +302,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                   );
                                 }).then((value) {
                               if (value ?? false) {
-                                produtosProvider.reduceProduto(produtos[index]);
+                                produtosProvider.reduceProduto(
+                                    produtosProvider.produtos[index]);
                               }
                             });
                           } else {
-                            produtosProvider.reduceProduto(produtos[index]);
+                            produtosProvider.reduceProduto(
+                                produtosProvider.produtos[index]);
                           }
                         },
                         child: Icon(Icons.remove),
@@ -322,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         double? value = double.tryParse(text);
                         if (value != null) {
                           produtosProvider.setQuantityByProduto(
-                              produtos[index], value);
+                              produtosProvider.produtos[index], value);
                         } else {
                           showDialog(
                               context: context,
@@ -372,7 +368,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                           }).then((value) {
                         if (value ?? false) {
-                          produtosProvider.removeProduto(produtos[index]);
+                          produtosProvider
+                              .removeProduto(produtosProvider.produtos[index]);
                         }
                       });
                     },

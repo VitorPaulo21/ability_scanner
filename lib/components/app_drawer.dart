@@ -189,10 +189,10 @@ class _AppDrawerState extends State<AppDrawer> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     DragTarget<String>(onAccept: (data) {
+                      data = data == "Código" ? "Codico" : data;
                       layoutOrganization[layoutOrganization.indexOf(data)] =
                           layoutOrganization[0];
-                      layoutOrganization[0] =
-                          data == "Código" ? "Codico" : data;
+                      layoutOrganization[0] = data;
 
                       settingsProvider.layoutOrganization = layoutOrganization;
                     }, builder: (ctx, candidate, rejected) {
@@ -204,10 +204,11 @@ class _AppDrawerState extends State<AppDrawer> {
                     Text(settingsProvider.fileSeparator ? "," : ";"),
                     const SizedBox(width: 5),
                     DragTarget<String>(onAccept: (data) {
+                      data = data == "Código" ? "Codico" : data;
                       layoutOrganization[layoutOrganization.indexOf(data)] =
                           layoutOrganization[1];
-                      layoutOrganization[1] =
-                          data == "Código" ? "Codico" : data;
+                      layoutOrganization[1] = data;
+                          
                       settingsProvider.layoutOrganization = layoutOrganization;
                       
                       
@@ -220,10 +221,10 @@ class _AppDrawerState extends State<AppDrawer> {
                     Text(settingsProvider.fileSeparator ? "," : ";"),
                     const SizedBox(width: 5),
                     DragTarget<String>(onAccept: (data) {
+                      data = data == "Código" ? "Codico" : data;
                       layoutOrganization[layoutOrganization.indexOf(data)] =
                           layoutOrganization[2];
-                      layoutOrganization[2] =
-                          data == "Código" ? "Codico" : data;
+                      layoutOrganization[2] = data;
                       settingsProvider.layoutOrganization = layoutOrganization;
                    
                      
