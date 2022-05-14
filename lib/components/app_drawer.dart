@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:barcode_scanner/models/produto.dart';
+import 'package:barcode_scanner/providers/produto_provider.dart';
 import 'package:barcode_scanner/providers/settings_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +42,7 @@ class _AppDrawerState extends State<AppDrawer> {
             },
             icon: Icon(Icons.arrow_back)),
       ),
+      bottomSheet: exportButton(context, settingsProvider),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
@@ -48,199 +51,241 @@ class _AppDrawerState extends State<AppDrawer> {
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.max,
             children: [
-              CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                radius: 58,
-                child: Image.asset(
-                  "lib/assets/abilityIcon.png",
-                  fit: BoxFit.cover,
-                  height: 80,
-                  width: 80,
-                ),
-              ),
-              const SizedBox(
-                height: 15,
-              ),
-              const FittedBox(
-                child: Text(
-                  "Ability Scanner",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
-                ),
-              ),
-              const SizedBox(
-                height: 25 / 2,
-              ),
-              const Divider(
-                thickness: 1,
-              ),
-              const SizedBox(
-                height: 25 / 2,
-              ),
-              ListTile(
-                leading: CupertinoSwitch(
-                    value: settingsProvider.quantityAsk,
-                    onChanged: (value) {
-                      settingsProvider.quantityAsk = value;
-                    }),
-                title: const Text("Perguntar Quantidade"),
-                subtitle: const Text(
-                    "Pergunta a quantidade do produto após escanear o código"),
-              ),
+              ...bilityTopIcon(context),
+              askQuantitySwitchListile(settingsProvider),
               const SizedBox(
                 height: 10,
               ),
-              ListTile(
-                leading: CupertinoSwitch(
-                    value: settingsProvider.validityAsk,
-                    onChanged: (value) {
-                      settingsProvider.validityAsk = value;
-                    }),
-                title: const Text("Perguntar Validade"),
-                subtitle: const Text(
-                    "Pergunta a validade do produto após escanear o código"),
-              ),
+              askValiditySwitchListile(settingsProvider),
               const SizedBox(
                 height: 15,
               ),
-              Column(children: [
-                Text("Extenção de Exportação"),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Text(".txt"),
-                        Container(
-                          width: 120,
-                          child: Consumer<SettingsProvider>(
-                              builder: (ctx, seetings, _) {
-                            return Slider(
-                              value: settingsProvider.fileFormat ? 1 : 0,
-                              onChanged: (value) {
-                                settingsProvider.fileFormat =
-                                    value == 0 ? false : true;
-                              },
-                              divisions: 1,
-                              label:
-                                  settingsProvider.fileFormat ? ".csv" : ".txt",
-                            );
-                          }),
-                        ),
-                        const Text(
-                          ".csv\n(Excel)",
-                          textAlign: TextAlign.center,
-                        )
-                      ],
-                    ),
-                  ],
-                ),
-              ]),
+              exportExtensionSitchField(settingsProvider),
               const SizedBox(
                 height: 15,
               ),
-              Column(children: [
-                Text("Separador do arquivo de saída"),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        const Text(
-                          ";",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                          ),
-                        ),
-                        Container(
-                          width: 120,
-                            child: Slider(
-                              value: settingsProvider.fileSeparator ? 1 : 0,
-                              onChanged: (value) {
-                                settingsProvider.fileSeparator =
-                                    value == 0 ? false : true;
-                              },
-                              divisions: 1,
-                              label: settingsProvider.fileSeparator ? "," : ";",
-                            )
-                          
-                        ),
-                        const Text(
-                          ",",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    DragTarget<String>(onAccept: (data) {
-                      data = data == "Código" ? "Codico" : data;
-                      layoutOrganization[layoutOrganization.indexOf(data)] =
-                          layoutOrganization[0];
-                      layoutOrganization[0] = data;
-
-                      settingsProvider.layoutOrganization = layoutOrganization;
-                    }, builder: (ctx, candidate, rejected) {
-                      return Drager(layoutOrganization[0] == "Codico"
-                          ? "Código"
-                          : layoutOrganization[0]);
-                    }),
-                    const SizedBox(width: 5),
-                    Text(settingsProvider.fileSeparator ? "," : ";"),
-                    const SizedBox(width: 5),
-                    DragTarget<String>(onAccept: (data) {
-                      data = data == "Código" ? "Codico" : data;
-                      layoutOrganization[layoutOrganization.indexOf(data)] =
-                          layoutOrganization[1];
-                      layoutOrganization[1] = data;
-                          
-                      settingsProvider.layoutOrganization = layoutOrganization;
-                      
-                      
-                    }, builder: (ctx, candidate, rejected) {
-                      return Drager(layoutOrganization[1] == "Codico"
-                          ? "Código"
-                          : layoutOrganization[1]);
-                    }),
-                    const SizedBox(width: 5),
-                    Text(settingsProvider.fileSeparator ? "," : ";"),
-                    const SizedBox(width: 5),
-                    DragTarget<String>(onAccept: (data) {
-                      data = data == "Código" ? "Codico" : data;
-                      layoutOrganization[layoutOrganization.indexOf(data)] =
-                          layoutOrganization[2];
-                      layoutOrganization[2] = data;
-                      settingsProvider.layoutOrganization = layoutOrganization;
-                   
-                     
-                    }, builder: (ctx, candidate, rejected) {
-                      return Drager(layoutOrganization[2] == "Codico"
-                          ? "Código"
-                          : layoutOrganization[2]);
-                    }),
-                  ],
-                )
-              ]),
+              exportFileSeparatorSwitchField(settingsProvider),
             ],
           ),
         ),
       ),
     ));
+  }
+
+  Column exportFileSeparatorSwitchField(SettingsProvider settingsProvider) {
+    return Column(children: [
+      Text("Separador do arquivo de saída"),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              const Text(
+                ";",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                ),
+              ),
+              Container(
+                  width: 120,
+                  child: Slider(
+                    value: settingsProvider.fileSeparator ? 1 : 0,
+                    onChanged: (value) {
+                      settingsProvider.fileSeparator =
+                          value == 0 ? false : true;
+                    },
+                    divisions: 1,
+                    label: settingsProvider.fileSeparator ? "," : ";",
+                  )),
+              const Text(
+                ",",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      const SizedBox(
+        height: 10,
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          DragTarget<String>(onAccept: (data) {
+            data = data == "Código" ? "Codico" : data;
+            layoutOrganization[layoutOrganization.indexOf(data)] =
+                layoutOrganization[0];
+            layoutOrganization[0] = data;
+
+            settingsProvider.layoutOrganization = layoutOrganization;
+          }, builder: (ctx, candidate, rejected) {
+            return Drager(layoutOrganization[0] == "Codico"
+                ? "Código"
+                : layoutOrganization[0]);
+          }),
+          const SizedBox(width: 5),
+          Text(settingsProvider.fileSeparator ? "," : ";"),
+          const SizedBox(width: 5),
+          DragTarget<String>(onAccept: (data) {
+            data = data == "Código" ? "Codico" : data;
+            layoutOrganization[layoutOrganization.indexOf(data)] =
+                layoutOrganization[1];
+            layoutOrganization[1] = data;
+
+            settingsProvider.layoutOrganization = layoutOrganization;
+          }, builder: (ctx, candidate, rejected) {
+            return Drager(layoutOrganization[1] == "Codico"
+                ? "Código"
+                : layoutOrganization[1]);
+          }),
+          const SizedBox(width: 5),
+          Text(settingsProvider.fileSeparator ? "," : ";"),
+          const SizedBox(width: 5),
+          DragTarget<String>(onAccept: (data) {
+            data = data == "Código" ? "Codico" : data;
+            layoutOrganization[layoutOrganization.indexOf(data)] =
+                layoutOrganization[2];
+            layoutOrganization[2] = data;
+            settingsProvider.layoutOrganization = layoutOrganization;
+          }, builder: (ctx, candidate, rejected) {
+            return Drager(layoutOrganization[2] == "Codico"
+                ? "Código"
+                : layoutOrganization[2]);
+          }),
+        ],
+      )
+    ]);
+  }
+
+  Column exportExtensionSitchField(SettingsProvider settingsProvider) {
+    return Column(children: [
+      Text("Extenção de Exportação"),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Text(".txt"),
+              Container(
+                width: 120,
+                child: Consumer<SettingsProvider>(builder: (ctx, seetings, _) {
+                  return Slider(
+                    value: settingsProvider.fileFormat ? 1 : 0,
+                    onChanged: (value) {
+                      settingsProvider.fileFormat = value == 0 ? false : true;
+                    },
+                    divisions: 1,
+                    label: settingsProvider.fileFormat ? ".csv" : ".txt",
+                  );
+                }),
+              ),
+              const Text(
+                ".csv\n(Excel)",
+                textAlign: TextAlign.center,
+              )
+            ],
+          ),
+        ],
+      ),
+    ]);
+  }
+
+  ListTile askValiditySwitchListile(SettingsProvider settingsProvider) {
+    return ListTile(
+      leading: CupertinoSwitch(
+          value: settingsProvider.validityAsk,
+          onChanged: (value) {
+            settingsProvider.validityAsk = value;
+          }),
+      title: const Text("Perguntar Validade"),
+      subtitle:
+          const Text("Pergunta a validade do produto após escanear o código"),
+    );
+  }
+
+  ListTile askQuantitySwitchListile(SettingsProvider settingsProvider) {
+    return ListTile(
+      leading: CupertinoSwitch(
+          value: settingsProvider.quantityAsk,
+          onChanged: (value) {
+            settingsProvider.quantityAsk = value;
+          }),
+      title: const Text("Perguntar Quantidade"),
+      subtitle:
+          const Text("Pergunta a quantidade do produto após escanear o código"),
+    );
+  }
+
+  List<Widget> bilityTopIcon(BuildContext context) {
+    return [
+      CircleAvatar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        radius: 58,
+        child: Image.asset(
+          "lib/assets/abilityIcon.png",
+          fit: BoxFit.cover,
+          height: 80,
+          width: 80,
+        ),
+      ),
+      const SizedBox(
+        height: 15,
+      ),
+      const FittedBox(
+        child: Text(
+          "Ability Scanner",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
+        ),
+      ),
+      const SizedBox(
+        height: 25 / 2,
+      ),
+      const Divider(
+        thickness: 1,
+      ),
+      const SizedBox(
+        height: 25 / 2,
+      )
+    ];
+  }
+
+  Row exportButton(BuildContext context, SettingsProvider settingsProvider) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+                onPressed: () {
+                  Provider.of<ProdutoProvider>(context, listen: false).export(
+                      settingsProvider.fileFormat ? ".csv" : ".txt",
+                      settingsProvider.fileSeparator ? "," : ";",
+                      settingsProvider.layoutOrganization);
+                },
+                child: Row(
+                  children: const [
+                    Text("Exportar"),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Icon(Icons.exit_to_app),
+                  ],
+                )),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget Drager(String data) {
