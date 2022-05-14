@@ -42,30 +42,39 @@ class _AppDrawerState extends State<AppDrawer> {
             },
             icon: Icon(Icons.arrow_back)),
       ),
-      bottomSheet: exportButton(context, settingsProvider),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.start,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              ...bilityTopIcon(context),
-              askQuantitySwitchListile(settingsProvider),
-              const SizedBox(
-                height: 10,
-              ),
-              askValiditySwitchListile(settingsProvider),
-              const SizedBox(
-                height: 15,
-              ),
-              exportExtensionSitchField(settingsProvider),
-              const SizedBox(
-                height: 15,
-              ),
-              exportFileSeparatorSwitchField(settingsProvider),
-            ],
+      bottomSheet:
+          Container(height: 50, child: exportButton(context, settingsProvider)),
+      body: Container(
+        height: MediaQuery.of(context).size.height -
+            kToolbarHeight -
+            MediaQuery.of(context).viewInsets.top -
+            MediaQuery.of(context).viewPadding.top -
+            50,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                ...bilityTopIcon(context),
+                askQuantitySwitchListile(settingsProvider),
+                const SizedBox(
+                  height: 10,
+                ),
+                askValiditySwitchListile(settingsProvider),
+                const SizedBox(
+                  height: 15,
+                ),
+                exportExtensionSitchField(settingsProvider),
+                const SizedBox(
+                  height: 15,
+                ),
+                exportFileSeparatorSwitchField(settingsProvider),
+                draggerLayoutConfig(settingsProvider)
+              ],
+            ),
           ),
         ),
       ),
@@ -115,53 +124,57 @@ class _AppDrawerState extends State<AppDrawer> {
       const SizedBox(
         height: 10,
       ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          DragTarget<String>(onAccept: (data) {
-            data = data == "Código" ? "Codico" : data;
-            layoutOrganization[layoutOrganization.indexOf(data)] =
-                layoutOrganization[0];
-            layoutOrganization[0] = data;
-
-            settingsProvider.layoutOrganization = layoutOrganization;
-          }, builder: (ctx, candidate, rejected) {
-            return Drager(layoutOrganization[0] == "Codico"
-                ? "Código"
-                : layoutOrganization[0]);
-          }),
-          const SizedBox(width: 5),
-          Text(settingsProvider.fileSeparator ? "," : ";"),
-          const SizedBox(width: 5),
-          DragTarget<String>(onAccept: (data) {
-            data = data == "Código" ? "Codico" : data;
-            layoutOrganization[layoutOrganization.indexOf(data)] =
-                layoutOrganization[1];
-            layoutOrganization[1] = data;
-
-            settingsProvider.layoutOrganization = layoutOrganization;
-          }, builder: (ctx, candidate, rejected) {
-            return Drager(layoutOrganization[1] == "Codico"
-                ? "Código"
-                : layoutOrganization[1]);
-          }),
-          const SizedBox(width: 5),
-          Text(settingsProvider.fileSeparator ? "," : ";"),
-          const SizedBox(width: 5),
-          DragTarget<String>(onAccept: (data) {
-            data = data == "Código" ? "Codico" : data;
-            layoutOrganization[layoutOrganization.indexOf(data)] =
-                layoutOrganization[2];
-            layoutOrganization[2] = data;
-            settingsProvider.layoutOrganization = layoutOrganization;
-          }, builder: (ctx, candidate, rejected) {
-            return Drager(layoutOrganization[2] == "Codico"
-                ? "Código"
-                : layoutOrganization[2]);
-          }),
-        ],
-      )
+      
     ]);
+  }
+
+  Row draggerLayoutConfig(SettingsProvider settingsProvider) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        DragTarget<String>(onAccept: (data) {
+          data = data == "Código" ? "Codico" : data;
+          layoutOrganization[layoutOrganization.indexOf(data)] =
+              layoutOrganization[0];
+          layoutOrganization[0] = data;
+
+          settingsProvider.layoutOrganization = layoutOrganization;
+        }, builder: (ctx, candidate, rejected) {
+          return Drager(layoutOrganization[0] == "Codico"
+              ? "Código"
+              : layoutOrganization[0]);
+        }),
+        const SizedBox(width: 5),
+        Text(settingsProvider.fileSeparator ? "," : ";"),
+        const SizedBox(width: 5),
+        DragTarget<String>(onAccept: (data) {
+          data = data == "Código" ? "Codico" : data;
+          layoutOrganization[layoutOrganization.indexOf(data)] =
+              layoutOrganization[1];
+          layoutOrganization[1] = data;
+
+          settingsProvider.layoutOrganization = layoutOrganization;
+        }, builder: (ctx, candidate, rejected) {
+          return Drager(layoutOrganization[1] == "Codico"
+              ? "Código"
+              : layoutOrganization[1]);
+        }),
+        const SizedBox(width: 5),
+        Text(settingsProvider.fileSeparator ? "," : ";"),
+        const SizedBox(width: 5),
+        DragTarget<String>(onAccept: (data) {
+          data = data == "Código" ? "Codico" : data;
+          layoutOrganization[layoutOrganization.indexOf(data)] =
+              layoutOrganization[2];
+          layoutOrganization[2] = data;
+          settingsProvider.layoutOrganization = layoutOrganization;
+        }, builder: (ctx, candidate, rejected) {
+          return Drager(layoutOrganization[2] == "Codico"
+              ? "Código"
+              : layoutOrganization[2]);
+        }),
+      ],
+    );
   }
 
   Column exportExtensionSitchField(SettingsProvider settingsProvider) {

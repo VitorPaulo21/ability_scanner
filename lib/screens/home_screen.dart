@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:barcode_scanner/components/app_drawer.dart';
 import 'package:barcode_scanner/models/produto.dart';
 import 'package:barcode_scanner/providers/produto_provider.dart';
@@ -414,7 +416,8 @@ class _HomeScreenState extends State<HomeScreen> {
         onQRViewCreated: (controller) {
           this.controller = controller;
 
-          controller.scannedDataStream.listen((scanData) {
+          StreamSubscription<Barcode> listenner = controller.scannedDataStream
+              .listen((scanData) {
             // controller.pauseCamera();
 
             // showDialog(
@@ -482,7 +485,9 @@ class _HomeScreenState extends State<HomeScreen> {
             //         ],
             //       );
             //     }).then((value) => controller.resumeCamera());
-          }).onData((scanData) {
+          
+          })
+            ..onData((scanData) {
             if (!continuousScanner) {
               code = scanData.code ?? "";
               return;
@@ -490,8 +495,13 @@ class _HomeScreenState extends State<HomeScreen> {
             controller.pauseCamera();
 
             scanDialog(context, scanData.code.toString(), produtosProvider)
-                .then((value) => controller.resumeCamera());
-          });
+                  .then((value) {
+                controller.resumeCamera();
+              });
+            });
+          // listenner.onError(() {
+          //   print("erro");
+          // });
         },
         cameraFacing: CameraFacing.back,
         overlay: QrScannerOverlayShape(
@@ -658,7 +668,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           );
-        }).then((value) => validade = null);
+        }).then((value) {
+      validade = null;
+      code = "";
+    });
   }
 
   void playScanSound() async {

@@ -1,4 +1,5 @@
 import 'package:barcode_scanner/models/produto.dart';
+import 'package:barcode_scanner/providers/settings_provider.dart';
 import 'package:barcode_scanner/utils/write_data.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
@@ -8,7 +9,8 @@ class ProdutoProvider with ChangeNotifier {
   List<Produto> _produtos = [];
 
   List<Produto> get produtos => [..._produtos];
-  ProdutoProvider() {
+  SettingsProvider? settingsProvider;
+  ProdutoProvider(this.settingsProvider) {
     syncToHive();
   }
   void syncToHive() async {
@@ -218,7 +220,7 @@ class ProdutoProvider with ChangeNotifier {
             : layout[2] == "Quant"
                 ? product.quantidade.toString()
                 : data;
-        return "$item1$separator$item2$separator$item3";
+        return "$item1$separator$item2${item3.isEmpty ? settingsProvider!.validityAsk ? separator : "" : separator + item3}";
       }).toList(),
       extension,
     );
