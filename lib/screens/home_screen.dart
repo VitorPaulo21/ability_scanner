@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime? validade;
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   bool isScanning = false;
-
+  String query = "";
   @override
   Widget build(BuildContext context) {
     double avaliableScreenSpace = MediaQuery.of(context).size.height -
@@ -94,8 +94,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             context: context,
                             builder: (ctx) {
                               return AlertDialog(
-                                title: Text("Alerta"),
-                                content: Text(
+                                title: const Text("Alerta"),
+                                content: const Text(
                                     "Deseja limpar a lista de Códigos de barras?"),
                                 actions: [
                                   TextButton(
@@ -104,14 +104,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 rootNavigator: true)
                                             .pop(true);
                                       },
-                                      child: Text("Sim")),
+                                      child: const Text("Sim")),
                                   TextButton(
                                       onPressed: () {
                                         Navigator.of(context,
                                                 rootNavigator: true)
                                             .pop(false);
                                       },
-                                      child: Text("Não"))
+                                      child: const Text("Não"))
                                 ],
                               );
                             }).then((value) {
@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
                         });
                       },
-                      icon: Icon(Icons.delete_forever_outlined)),
+                      icon: const Icon(Icons.delete_forever_outlined)),
                 if (produtosProvider.produtos.isNotEmpty)
                   IconButton(
                       onPressed: () {
@@ -155,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: CupertinoTextField(
                             onChanged: (txt) {
                               setState(() {
-                                
+                                query = txt;
                               });
                             },
                             prefix: const Padding(
@@ -166,6 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: () {
                                 setState(() {
                                   isScanning = false;
+                                  query = "";
                                 });
                               },
                               child: const Padding(
@@ -214,6 +215,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ElevatedButton(
                           onPressed: () {
+                            if (isScanning) {
+                              if (query.isNotEmpty) {
+                                scanDialog(context, query, produtosProvider);
+                                return;
+                              }
+                            }
                             if (code.isEmpty || code == "") {
                               return;
                             }
@@ -223,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                Expanded(child: scannedCodes(produtosProvider, context))
+                Expanded(child: listOfScannedCodes(produtosProvider, context))
               ],
             )
             // bottomNavigationBar:
@@ -233,153 +240,165 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Padding scannedCodes(ProdutoProvider produtosProvider, BuildContext context) {
+  Padding listOfScannedCodes(
+      ProdutoProvider produtosProvider, BuildContext context) {
+    List<Produto> produtos = isScanning
+        ? produtosProvider.produtos
+            .where((element) => element.barcode.contains(query))
+            .toList()
+        : produtosProvider.produtos;
     return Padding(
       padding: const EdgeInsets.all(0.0),
       child: ListView.builder(
-          itemCount: produtosProvider.produtos.length,
+          itemCount: produtos.length,
           itemBuilder: (ctx, index) {
             TextEditingController quantityController = TextEditingController();
             bool isInteger(num value) => (value % 1) == 0;
-            if (isInteger(produtosProvider.produtos[index].quantidade)) {
-              quantityController.text = produtosProvider
-                  .produtos[index].quantidade
+            if (isInteger(produtos[index].quantidade)) {
+              quantityController.text =
+                  produtos[index].quantidade
                   .toInt()
                   .toString();
             } else {
-              quantityController.text = produtosProvider
-                  .produtos[index].quantidade
+              quantityController.text =
+                  produtos[index].quantidade
                   .toStringAsFixed(2);
             }
-            return ListTile(
-              title: Text(produtosProvider.produtos[index].barcode),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 130,
-                    child: CupertinoTextField(
-                      textInputAction: TextInputAction.done,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      controller: quantityController,
-                      prefix: GestureDetector(
-                        onTap: () {
-                          produtosProvider.acrescentProduto(
-                              produtosProvider.produtos[index]);
-                        },
-                        child: Icon(Icons.add),
-                      ),
-                      suffix: GestureDetector(
-                        onTap: () {
-                          if (produtosProvider.produtos[index].quantidade ==
-                              1) {
-                            showDialog<bool>(
-                                context: context,
-                                builder: (ctx) {
-                                  return AlertDialog(
-                                    title: const Text("Alerta"),
-                                    content: const Text(
-                                        "A quantidade atual a ser removida ira zerar a quantidade do material no sistema deseja continuar?"),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context,
-                                                  rootNavigator: true)
-                                              .pop(true);
-                                        },
-                                        child: const Text("Sim"),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context,
-                                                  rootNavigator: true)
-                                              .pop(false);
-                                        },
-                                        child: const Text("Não"),
-                                      ),
-                                    ],
-                                  );
-                                }).then((value) {
-                              if (value ?? false) {
-                                produtosProvider.reduceProduto(
-                                    produtosProvider.produtos[index]);
-                              }
-                            });
-                          } else {
-                            produtosProvider.reduceProduto(
-                                produtosProvider.produtos[index]);
-                          }
-                        },
-                        child: Icon(Icons.remove),
-                      ),
-                      textAlign: TextAlign.center,
-                      onSubmitted: (text) {
-                        double? value = double.tryParse(text);
-                        if (value != null) {
-                          produtosProvider.setQuantityByProduto(
-                              produtosProvider.produtos[index], value);
-                        } else {
-                          showDialog(
-                              context: context,
-                              builder: (ctx) {
-                                return AlertDialog(
-                                  title: const Text("Alerta"),
-                                  content: const Text("Valor Inválido"),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context,
-                                                rootNavigator: true)
-                                            .pop();
-                                      },
-                                      child: const Text("Ok"),
-                                    ),
-                                  ],
-                                );
-                              });
-                        }
-                      },
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      showDialog<bool>(
-                          context: context,
-                          builder: (ctx) {
-                            return AlertDialog(
-                              title: const Text("Alerta"),
-                              content: const Text(
-                                  "Tem certeza que deseja excluir este item?"),
-                              actions: [
-                                TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context, rootNavigator: true)
-                                          .pop(true);
-                                    },
-                                    child: const Text("Ok")),
-                                TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context, rootNavigator: true)
-                                          .pop(false);
-                                    },
-                                    child: const Text("Cancelar")),
-                              ],
-                            );
-                          }).then((value) {
-                        if (value ?? false) {
-                          produtosProvider
-                              .removeProduto(produtosProvider.produtos[index]);
-                        }
-                      });
-                    },
-                    icon: Icon(Icons.delete_forever),
-                    color: Colors.red,
-                  ),
-                ],
-              ),
-            );
+            return barcodeListItem(
+                produtos, index, quantityController, produtosProvider, context);
           }),
+    );
+  }
+
+  ListTile barcodeListItem(
+      List<Produto> produtos,
+      int index,
+      TextEditingController quantityController,
+      ProdutoProvider produtosProvider,
+      BuildContext context) {
+    return ListTile(
+      title: Text(produtos[index].barcode),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 130,
+            child: CupertinoTextField(
+              textInputAction: TextInputAction.done,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              controller: quantityController,
+              prefix: GestureDetector(
+                onTap: () {
+                  produtosProvider.acrescentProduto(
+                            produtos[index]);
+                },
+                child: Icon(Icons.add),
+              ),
+              suffix: GestureDetector(
+                onTap: () {
+                  if (produtos[index].quantidade == 1) {
+                    showDialog<bool>(
+                        context: context,
+                        builder: (ctx) {
+                          return AlertDialog(
+                            title: const Text("Alerta"),
+                            content: const Text(
+                                "A quantidade atual a ser removida ira zerar a quantidade do material no sistema deseja continuar?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pop(true);
+                                },
+                                child: const Text("Sim"),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pop(false);
+                                },
+                                child: const Text("Não"),
+                              ),
+                            ],
+                          );
+                        }).then((value) {
+                      if (value ?? false) {
+                        produtosProvider.reduceProduto(
+                                  produtos[index]);
+                      }
+                    });
+                  } else {
+                    produtosProvider.reduceProduto(
+                              produtos[index]);
+                  }
+                },
+                child: Icon(Icons.remove),
+              ),
+              textAlign: TextAlign.center,
+              onSubmitted: (text) {
+                double? value = double.tryParse(text);
+                if (value != null) {
+                  produtosProvider.setQuantityByProduto(
+                            produtos[index], value);
+                } else {
+                  showDialog(
+                      context: context,
+                      builder: (ctx) {
+                        return AlertDialog(
+                          title: const Text("Alerta"),
+                          content: const Text("Valor Inválido"),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context, rootNavigator: true)
+                                    .pop();
+                              },
+                              child: const Text("Ok"),
+                            ),
+                          ],
+                        );
+                      });
+                }
+              },
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              showDialog<bool>(
+                  context: context,
+                  builder: (ctx) {
+                    return AlertDialog(
+                      title: const Text("Alerta"),
+                      content: const Text(
+                          "Tem certeza que deseja excluir este item?"),
+                      actions: [
+                        TextButton(
+                            onPressed: () {
+                              Navigator.of(context, rootNavigator: true)
+                                  .pop(true);
+                            },
+                            child: const Text("Ok")),
+                        TextButton(
+                            onPressed: () {
+                              Navigator.of(context, rootNavigator: true)
+                                  .pop(false);
+                            },
+                            child: const Text("Cancelar")),
+                      ],
+                    );
+                  }).then((value) {
+                if (value ?? false) {
+                  produtosProvider
+                            .removeProduto(produtos[index]);
+                }
+              });
+            },
+            icon: Icon(Icons.delete_forever),
+            color: Colors.red,
+          ),
+        ],
+      ),
     );
   }
 
