@@ -14,7 +14,7 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
-  HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -31,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   bool isScanning = false;
   String query = "";
+  bool scan = false;
   @override
   Widget build(BuildContext context) {
     double avaliableScreenSpace = MediaQuery.of(context).size.height -
@@ -215,18 +216,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
+                      if (!continuousScanner || isScanning)
                       ElevatedButton(
                           onPressed: () {
-                            if (isScanning) {
-                              if (query.isNotEmpty) {
-                                scanDialog(context, query, produtosProvider);
-                                return;
-                              }
-                            }
-                            if (code.isEmpty || code == "") {
-                              return;
-                            }
-                            scanDialog(context, code, produtosProvider);
+                              scan = true;
+
                           },
                           child: Text(isScanning ? "Inserrir" : "Escanear")),
                     ],
@@ -235,8 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(child: listOfScannedCodes(produtosProvider, context))
               ],
             )
-            // bottomNavigationBar:
-            //     botomScanBar(avaliableScreenSpace, context, produtosProvider),
+
             ),
       ),
     );
@@ -396,7 +389,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
               });
             },
-            icon: Icon(Icons.delete_forever),
+            icon: const Icon(Icons.delete_forever),
             color: Colors.red,
           ),
         ],
@@ -488,20 +481,17 @@ class _HomeScreenState extends State<HomeScreen> {
           
           })
             ..onData((scanData) {
-            if (!continuousScanner) {
-              code = scanData.code ?? "";
-              return;
-            }
+              if (continuousScanner || scan) {
+                print(scan);
             controller.pauseCamera();
 
             scanDialog(context, scanData.code.toString(), produtosProvider)
                   .then((value) {
                 controller.resumeCamera();
               });
+                scan = false;
+              }
             });
-          // listenner.onError(() {
-          //   print("erro");
-          // });
         },
         cameraFacing: CameraFacing.back,
         overlay: QrScannerOverlayShape(
@@ -520,7 +510,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!Provider.of<SettingsProvider>(context, listen: false).quantityAsk &&
         !Provider.of<SettingsProvider>(context, listen: false).validityAsk) {
       produtosProvider.addProduto(Produto(scanData));
-      return await Future<void>.delayed(Duration(milliseconds: 1000));
+      return await Future<void>.delayed(const Duration(milliseconds: 1000));
     }
     return showDialog(
         context: context,
@@ -540,7 +530,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Adicionar Produto:"),
+                      const Text("Adicionar Produto:"),
                       const SizedBox(
                         height: 10,
                       ),
@@ -558,7 +548,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color:
                                         Theme.of(context).colorScheme.primary,
                                     width: 2)),
-                            label: Text("Qauntidade:"),
+                            label: const Text("Qauntidade:"),
                           ),
                           validator: (txt) {
                             if ((double.tryParse(txt ?? "d")) == null) {
@@ -924,7 +914,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                 });
               },
-              child: Text("Remover"),
+              child: const Text("Remover"),
             ),
           ),
         ],
