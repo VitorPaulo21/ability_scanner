@@ -500,7 +500,7 @@ class _HomeScreenState extends State<HomeScreen> {
             borderColor: Colors.orange,
             cutOutHeight: 85,
             cutOutWidth: MediaQuery.of(context).size.width * 0.8),
-            //teste
+        //teste 2
       ),
     );
   }
