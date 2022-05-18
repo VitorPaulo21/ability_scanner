@@ -32,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isScanning = false;
   String query = "";
   bool scan = false;
+  Color scanColor = Colors.orange;
   @override
   Widget build(BuildContext context) {
     double avaliableScreenSpace = MediaQuery.of(context).size.height -
@@ -43,7 +44,6 @@ class _HomeScreenState extends State<HomeScreen> {
         Provider.of<SettingsProvider>(context, listen: false).continuousScanner;
     return WillPopScope(
       onWillPop: () async {
-        
         // FocusManager.instance.primaryFocus?.unfocus();
         bool closeReturn = false;
         await showDialog<bool>(
@@ -148,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
             drawer: AppDrawer(),
             body: Column(
               children: [
-                if (!isScanning) BarcodeScanner(context, produtosProvider),
+                if (!isScanning) BarcodeScanner(context),
                 Padding(
                   padding: EdgeInsets.all(8),
                   child: Row(
@@ -195,6 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   .continuousScanner = value;
                               setState(() {
                                 continuousScanner = value;
+                                scan = false;
                               });
                             }),
                       const SizedBox(
@@ -210,6 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               onPressed: () {
                                 setState(() {
                                   isScanning = true;
+                                  scan = false;
                                 });
                               },
                               icon: Icon(Icons.search),
@@ -217,31 +219,81 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       if (!continuousScanner || isScanning)
-                      ElevatedButton(
-                          onPressed: () {
-                              scan = true;
-
-                          },
-                          child: Text(isScanning ? "Inserrir" : "Escanear")),
+                        ElevatedButton(
+                          
+                            onPressed: scan
+                                ? null
+                                : () {
+                                    if (isScanning) {
+                                      scanDialog(context, query);
+                                    } else {
+                                      showDialog<bool>(
+                                          context: context,
+                                          builder: (ctx) {
+                                            return AlertDialog(
+                                              title: Text("Escanear"),
+                                              content: Text(
+                                                  "Deseja escanear um codico"),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context,
+                                                            rootNavigator: true)
+                                                        .pop(true);
+                                                  },
+                                                  child: Text("Sim"),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context,
+                                                            rootNavigator: true)
+                                                        .pop(false);
+                                                  },
+                                                  child: Text("Não"),
+                                                )
+                                              ],
+                                            );
+                                          }).then((value) {
+                                        setState(() {
+                                   
+                                          scan = value ?? false;
+                                        });
+                                        Future.delayed(Duration(
+                                                seconds: Provider.of<
+                                                            SettingsProvider>(
+                                                        context,
+                                                        listen: false)
+                                                    .waitScanTime))
+                                            .then((value) {
+                                          setState(() {
+                                            scan = false;
+                                          });
+                                        });
+                                      });
+                                    }
+                                  },
+                            child: Text(scan
+                                ? "Aguardando"
+                                : isScanning
+                                    ? "Inserrir"
+                                    : "Escanear")),
                     ],
                   ),
                 ),
-                Expanded(child: listOfScannedCodes(produtosProvider, context))
+                Expanded(child: listOfScannedCodes(context))
               ],
-            )
-
-            ),
+            )),
       ),
     );
   }
 
-  Padding listOfScannedCodes(
-      ProdutoProvider produtosProvider, BuildContext context) {
+  Padding listOfScannedCodes(BuildContext context) {
     List<Produto> produtos = isScanning
-        ? produtosProvider.produtos
+        ? Provider.of<ProdutoProvider>(context, listen: false)
+            .produtos
             .where((element) => element.barcode.contains(query))
             .toList()
-        : produtosProvider.produtos;
+        : Provider.of<ProdutoProvider>(context, listen: false).produtos;
     return Padding(
       padding: const EdgeInsets.all(0.0),
       child: ListView.builder(
@@ -251,26 +303,19 @@ class _HomeScreenState extends State<HomeScreen> {
             bool isInteger(num value) => (value % 1) == 0;
             if (isInteger(produtos[index].quantidade)) {
               quantityController.text =
-                  produtos[index].quantidade
-                  .toInt()
-                  .toString();
+                  produtos[index].quantidade.toInt().toString();
             } else {
               quantityController.text =
-                  produtos[index].quantidade
-                  .toStringAsFixed(2);
+                  produtos[index].quantidade.toStringAsFixed(2);
             }
             return barcodeListItem(
-                produtos, index, quantityController, produtosProvider, context);
+                produtos, index, quantityController, context);
           }),
     );
   }
 
-  ListTile barcodeListItem(
-      List<Produto> produtos,
-      int index,
-      TextEditingController quantityController,
-      ProdutoProvider produtosProvider,
-      BuildContext context) {
+  ListTile barcodeListItem(List<Produto> produtos, int index,
+      TextEditingController quantityController, BuildContext context) {
     return ListTile(
       title: Text(produtos[index].barcode),
       trailing: Row(
@@ -285,8 +330,8 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: quantityController,
               prefix: GestureDetector(
                 onTap: () {
-                  produtosProvider.acrescentProduto(
-                            produtos[index]);
+                  Provider.of<ProdutoProvider>(context, listen: false)
+                      .acrescentProduto(produtos[index]);
                 },
                 child: Icon(Icons.add),
               ),
@@ -319,13 +364,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         }).then((value) {
                       if (value ?? false) {
-                        produtosProvider.reduceProduto(
-                                  produtos[index]);
+                        Provider.of<ProdutoProvider>(context, listen: false)
+                            .reduceProduto(produtos[index]);
                       }
                     });
                   } else {
-                    produtosProvider.reduceProduto(
-                              produtos[index]);
+                    Provider.of<ProdutoProvider>(context, listen: false)
+                        .reduceProduto(produtos[index]);
                   }
                 },
                 child: Icon(Icons.remove),
@@ -334,8 +379,8 @@ class _HomeScreenState extends State<HomeScreen> {
               onSubmitted: (text) {
                 double? value = double.tryParse(text);
                 if (value != null) {
-                  produtosProvider.setQuantityByProduto(
-                            produtos[index], value);
+                  Provider.of<ProdutoProvider>(context, listen: false)
+                      .setQuantityByProduto(produtos[index], value);
                 } else {
                   showDialog(
                       context: context,
@@ -384,8 +429,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   }).then((value) {
                 if (value ?? false) {
-                  produtosProvider
-                            .removeProduto(produtos[index]);
+                  Provider.of<ProdutoProvider>(context, listen: false)
+                      .removeProduto(produtos[index]);
                 }
               });
             },
@@ -397,8 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Container BarcodeScanner(
-      BuildContext context, ProdutoProvider produtosProvider) {
+  Container BarcodeScanner(BuildContext context) {
     return Container(
       alignment: Alignment.bottomCenter,
       height: MediaQuery.of(context).orientation == Orientation.portrait
@@ -409,95 +453,105 @@ class _HomeScreenState extends State<HomeScreen> {
         onQRViewCreated: (controller) {
           this.controller = controller;
 
-          StreamSubscription<Barcode> listenner = controller.scannedDataStream
-              .listen((scanData) {
-            // controller.pauseCamera();
+          controller.scannedDataStream.listen(
+            (scanData) {
+              // controller.pauseCamera();
 
-            // showDialog(
-            //     context: context,
-            //     builder: (ctx) {
-            //       TextEditingController addController = TextEditingController();
-            //       addController.text = "1";
-            //       GlobalKey<FormState> formkey = GlobalKey<FormState>();
-            //       return AlertDialog(
-            //         title: Text(scanData.code.toString()),
-            //         content: Form(
-            //           key: formkey,
-            //           child: Column(
-            //             mainAxisSize: MainAxisSize.min,
-            //             mainAxisAlignment: MainAxisAlignment.center,
-            //             crossAxisAlignment: CrossAxisAlignment.start,
-            //             children: [
-            //               Text("Adicionar Produto:"),
-            //               const SizedBox(
-            //                 height: 10,
-            //               ),
-            //               TextFormField(
-            //                 controller: addController,
-            //                 keyboardType: const TextInputType.numberWithOptions(
-            //                     decimal: true),
-            //                 decoration: InputDecoration(
-            //                   border: OutlineInputBorder(
-            //                       borderRadius: const BorderRadius.all(
-            //                           Radius.circular(10)),
-            //                       borderSide: BorderSide(
-            //                           color:
-            //                               Theme.of(context).colorScheme.primary,
-            //                           width: 2)),
-            //                   label: Text("Qauntidade:"),
-            //                 ),
-            //                 validator: (txt) {
-            //                   if ((double.tryParse(txt ?? "d")) == null) {
-            //                     return "Valor Inválido";
-            //                   }
-            //                 },
-            //               ),
-            //             ],
-            //           ),
-            //         ),
-            //         actions: [
-            //           TextButton(
-            //             onPressed: () {
-            //               bool isvalid =
-            //                   formkey.currentState?.validate() ?? false;
-            //               if (isvalid) {
-            //                 produtosProvider.addProduto(Produto(
-            //                     scanData.code.toString(),
-            //                     quantidade: double.parse(addController.text)));
-            //               }
-            //               Navigator.of(context).pop();
-            //             },
-            //             child: const Text("Ok"),
-            //           ),
-            //           TextButton(
-            //             onPressed: () {
-            //               Navigator.of(context).pop();
-            //             },
-            //             child: const Text("Cancelar"),
-            //           ),
-            //         ],
-            //       );
-            //     }).then((value) => controller.resumeCamera());
-          
-          })
-            ..onData((scanData) {
-              if (continuousScanner || scan) {
-                print(scan);
-            controller.pauseCamera();
+              // showDialog(
+              //     context: context,
+              //     builder: (ctx) {
+              //       TextEditingController addController = TextEditingController();
+              //       addController.text = "1";
+              //       GlobalKey<FormState> formkey = GlobalKey<FormState>();
+              //       return AlertDialog(
+              //         title: Text(scanData.code.toString()),
+              //         content: Form(
+              //           key: formkey,
+              //           child: Column(
+              //             mainAxisSize: MainAxisSize.min,
+              //             mainAxisAlignment: MainAxisAlignment.center,
+              //             crossAxisAlignment: CrossAxisAlignment.start,
+              //             children: [
+              //               Text("Adicionar Produto:"),
+              //               const SizedBox(
+              //                 height: 10,
+              //               ),
+              //               TextFormField(
+              //                 controller: addController,
+              //                 keyboardType: const TextInputType.numberWithOptions(
+              //                     decimal: true),
+              //                 decoration: InputDecoration(
+              //                   border: OutlineInputBorder(
+              //                       borderRadius: const BorderRadius.all(
+              //                           Radius.circular(10)),
+              //                       borderSide: BorderSide(
+              //                           color:
+              //                               Theme.of(context).colorScheme.primary,
+              //                           width: 2)),
+              //                   label: Text("Qauntidade:"),
+              //                 ),
+              //                 validator: (txt) {
+              //                   if ((double.tryParse(txt ?? "d")) == null) {
+              //                     return "Valor Inválido";
+              //                   }
+              //                 },
+              //               ),
+              //             ],
+              //           ),
+              //         ),
+              //         actions: [
+              //           TextButton(
+              //             onPressed: () {
+              //               bool isvalid =
+              //                   formkey.currentState?.validate() ?? false;
+              //               if (isvalid) {
+              //                 produtosProvider.addProduto(Produto(
+              //                     scanData.code.toString(),
+              //                     quantidade: double.parse(addController.text)));
+              //               }
+              //               Navigator.of(context).pop();
+              //             },
+              //             child: const Text("Ok"),
+              //           ),
+              //           TextButton(
+              //             onPressed: () {
+              //               Navigator.of(context).pop();
+              //             },
+              //             child: const Text("Cancelar"),
+              //           ),
+              //         ],
+              //       );
+              //     }).then((value) => controller.resumeCamera());
+            },
+          ).onData((scanData) {
+            if (continuousScanner || scan) {
+              print(scan);
+              setState(() {
+                scanColor = Colors.green;
+              });
+              controller.pauseCamera();
 
-            scanDialog(context, scanData.code.toString(), produtosProvider)
-                  .then((value) {
+              scanDialog(
+                context,
+                scanData.code.toString(),
+              ).then((value) {
+                setState(() {
+                  scanColor = Colors.orange;
+                });
                 controller.resumeCamera();
               });
+              setState(() {
                 scan = false;
-              }
-            });
+                
+              });
+            }
+          });
         },
         cameraFacing: CameraFacing.back,
         overlay: QrScannerOverlayShape(
             borderRadius: 10,
             borderWidth: 5,
-            borderColor: Colors.orange,
+            borderColor: scanColor,
             cutOutHeight: 85,
             cutOutWidth: MediaQuery.of(context).size.width * 0.8),
         //teste 2
@@ -505,12 +559,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<dynamic> scanDialog(BuildContext context, String scanData,
-      ProdutoProvider produtosProvider) async {
+  Future<dynamic> scanDialog(
+    BuildContext context,
+    String scanData,
+  ) async {
     playScanSound();
     if (!Provider.of<SettingsProvider>(context, listen: false).quantityAsk &&
         !Provider.of<SettingsProvider>(context, listen: false).validityAsk) {
-      produtosProvider.addProduto(Produto(scanData));
+      Provider.of<ProdutoProvider>(context, listen: false)
+          .addProduto(Produto(scanData));
       return await Future<void>.delayed(const Duration(milliseconds: 1000));
     }
     return showDialog(
@@ -643,9 +700,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () {
                   bool isvalid = formkey.currentState?.validate() ?? false;
                   if (isvalid) {
-                    produtosProvider.addProduto(Produto(scanData,
-                        quantidade: double.parse(addController.text),
-                        validade: validade));
+                    Provider.of<ProdutoProvider>(context, listen: false)
+                        .addProduto(Produto(scanData,
+                            quantidade: double.parse(addController.text),
+                            validade: validade));
                   }
                   Navigator.of(context, rootNavigator: true).pop();
                 },

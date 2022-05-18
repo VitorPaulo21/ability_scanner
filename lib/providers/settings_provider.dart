@@ -7,6 +7,7 @@ class SettingsProvider with ChangeNotifier {
   bool _continuousScanner = false;
   bool _fileFormat = true;
   bool _fileSeparator = false;
+  int _waitScanTime = 10;
   List<String> _layoutOrganization = [
     "Codico",
     "Quant",
@@ -18,6 +19,7 @@ class SettingsProvider with ChangeNotifier {
   bool get fileFormat => _fileFormat;
   bool get fileSeparator => _fileSeparator;
   bool get continuousScanner => _continuousScanner;
+  int get waitScanTime => _waitScanTime;
   List<String> get layoutOrganization => _layoutOrganization;
   SettingsProvider() {
     sync();
@@ -63,6 +65,12 @@ class SettingsProvider with ChangeNotifier {
     SharedPreferences.getInstance().then((prefs) =>
         prefs.setStringList("layoutOrganization", _layoutOrganization));
   }
+  set waitScanTime(int value) {
+    _waitScanTime = value;
+    notifyListeners();
+    SharedPreferences.getInstance()
+        .then((prefs) => prefs.setInt("waitScanTime", _waitScanTime));
+  }
 
   void sync() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -71,6 +79,7 @@ class SettingsProvider with ChangeNotifier {
     _continuousScanner = prefs.getBool("continuousScanner") ?? false;
     _fileFormat = prefs.getBool("fileFormat") ?? false;
     _fileSeparator = prefs.getBool("fileSeparator") ?? false;
+    _waitScanTime = prefs.getInt("waitScanTime") ?? 10;
     _layoutOrganization = prefs.getStringList("layoutOrganization") ??
         [
           "Codico",
