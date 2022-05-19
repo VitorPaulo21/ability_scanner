@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:barcode_scanner/components/delete_all_button.dart';
 import 'package:barcode_scanner/models/produto.dart';
 import 'package:barcode_scanner/providers/produto_provider.dart';
 import 'package:barcode_scanner/providers/settings_provider.dart';
@@ -29,6 +30,7 @@ class _AppDrawerState extends State<AppDrawer> {
     SettingsProvider settingsProvider = Provider.of<SettingsProvider>(
       context,
     );
+ 
     layoutOrganization = Provider.of<SettingsProvider>(context, listen: false)
         .layoutOrganization;
     return Drawer(
@@ -43,7 +45,25 @@ class _AppDrawerState extends State<AppDrawer> {
             icon: Icon(Icons.arrow_back)),
       ),
       bottomSheet:
-          Container(height: 50, child: exportButton(context, settingsProvider)),
+          Container(
+          height: 50,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: DeleteAllButton(
+                      produtosProvider:
+                          Provider.of<ProdutoProvider>(context, listen: false)),
+                ),
+                SizedBox(
+                  width: 8,
+                ),
+                Expanded(child: exportButton(context, settingsProvider)),
+              ],
+            ),
+          )),
       body: Container(
         height: MediaQuery.of(context).size.height -
             kToolbarHeight -
@@ -272,33 +292,24 @@ class _AppDrawerState extends State<AppDrawer> {
     ];
   }
 
-  Row exportButton(BuildContext context, SettingsProvider settingsProvider) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ElevatedButton(
-                onPressed: () {
-                  Provider.of<ProdutoProvider>(context, listen: false).export(
-                      settingsProvider.fileFormat ? ".csv" : ".txt",
-                      settingsProvider.fileSeparator ? "," : ";",
-                      settingsProvider.layoutOrganization);
-                },
-                child: Row(
-                  children: const [
-                    Text("Exportar"),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Icon(Icons.exit_to_app),
-                  ],
-                )),
+  Widget exportButton(BuildContext context, SettingsProvider settingsProvider) {
+    return ElevatedButton(
+        onPressed: () {
+          Provider.of<ProdutoProvider>(context, listen: false).export(
+              settingsProvider.fileFormat ? ".csv" : ".txt",
+              settingsProvider.fileSeparator ? "," : ";",
+              settingsProvider.layoutOrganization);
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Text("Exportar"),
+            SizedBox(
+              width: 5,
+            ),
+            Icon(Icons.exit_to_app),
           ],
-        ),
-      ],
-    );
+        ));
   }
 
   Widget Drager(String data) {

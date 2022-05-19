@@ -89,41 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               actions: [
-                if (produtosProvider.produtos.isNotEmpty)
-                  IconButton(
-                      color: Colors.red,
-                      onPressed: () {
-                        showDialog<bool>(
-                            context: context,
-                            builder: (ctx) {
-                              return AlertDialog(
-                                title: const Text("Alerta"),
-                                content: const Text(
-                                    "Deseja limpar a lista de Códigos de barras?"),
-                                actions: [
-                                  TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context,
-                                                rootNavigator: true)
-                                            .pop(true);
-                                      },
-                                      child: const Text("Sim")),
-                                  TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context,
-                                                rootNavigator: true)
-                                            .pop(false);
-                                      },
-                                      child: const Text("Não"))
-                                ],
-                              );
-                            }).then((value) {
-                          if (value ?? false) {
-                            produtosProvider.clean();
-                          }
-                        });
-                      },
-                      icon: const Icon(Icons.delete_forever_outlined)),
+
+                  
                 if (produtosProvider.produtos.isNotEmpty)
                   IconButton(
                       onPressed: () {
@@ -981,3 +948,5 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+
