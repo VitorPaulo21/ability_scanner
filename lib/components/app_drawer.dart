@@ -52,7 +52,7 @@ class _AppDrawerState extends State<AppDrawer> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Expanded(
+                const Expanded(
                   child: DeleteAllButton(
                      ),
                 ),
