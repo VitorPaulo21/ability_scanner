@@ -198,9 +198,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                           context: context,
                                           builder: (ctx) {
                                             return AlertDialog(
-                                              title: Text("Escanear"),
-                                              content: Text(
-                                                  "Deseja escanear um codico"),
+                                              title: const Text("Escanear"),
+                                              content: const Text(
+                                                  "Deseja escanear um Código"),
                                               actions: [
                                                 TextButton(
                                                   onPressed: () {

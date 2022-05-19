@@ -54,10 +54,9 @@ class _AppDrawerState extends State<AppDrawer> {
               children: [
                 Expanded(
                   child: DeleteAllButton(
-                      produtosProvider:
-                          Provider.of<ProdutoProvider>(context, listen: false)),
+                     ),
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 8,
                 ),
                 Expanded(child: exportButton(context, settingsProvider)),
