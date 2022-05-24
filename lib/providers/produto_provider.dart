@@ -196,7 +196,7 @@ class ProdutoProvider with ChangeNotifier {
       "ordem":
           "${layout[0].toLowerCase().replaceAll("codico", "codigo")},${layout[1].toLowerCase().replaceAll("codico", "codigo")},${layout[2].toLowerCase().replaceAll("codico", "codigo")}"
     });
-    print(exportSettings);
+   
     archiveStringList.add(exportSettings);
 
     archiveStringList.addAll(_produtos.map<String>((product) {
@@ -225,7 +225,7 @@ class ProdutoProvider with ChangeNotifier {
           : layout[2] == "Quant"
               ? product.quantidade.toString()
               : data;
-      return "$item1$separator$item2${item3.isEmpty ? settingsProvider!.validityAsk ? separator : "" : separator + item3}";
+      return "$item1$separator$item2$separator$item3";
     }).toList());
     WriteData.writeData(
       archiveStringList,
