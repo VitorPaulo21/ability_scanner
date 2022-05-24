@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:barcode_scanner/models/produto.dart';
 import 'package:barcode_scanner/providers/settings_provider.dart';
 import 'package:barcode_scanner/utils/write_data.dart';
@@ -17,7 +19,7 @@ class ProdutoProvider with ChangeNotifier {
     _produtos = await Hive.box<Produto>("produtos").values.toList();
     notifyListeners();
   }
-  
+
   void addProduto(Produto produto) {
     if (produto.validade != null) {
       if (_produtos.any((prod) => prod.validade == null
@@ -27,9 +29,7 @@ class ProdutoProvider with ChangeNotifier {
               prod.barcode == produto.barcode)) {
         acrescentBarcodeValidity(produto.barcode,
             quantity: produto.quantidade, validity: produto.validade!);
-        
       } else {
-        
         _produtos.insert(0, produto);
         notifyListeners();
         Hive.box<Produto>("produtos").add(produto);
@@ -55,11 +55,10 @@ class ProdutoProvider with ChangeNotifier {
 
   void acrescentBarcode(String barcode, {double quantity = 1}) {
     try {
-      (_produtos
-          .firstWhere((produto) => produto.barcode == barcode)
+      (_produtos.firstWhere((produto) => produto.barcode == barcode)
             ..quantidade += quantity)
           .save();
-      
+
       notifyListeners();
     } catch (e) {
       if (e.runtimeType == StateError) {
@@ -70,8 +69,7 @@ class ProdutoProvider with ChangeNotifier {
 
   void acrescentBarcodeNoValidity(String barcode, {double quantity = 1}) {
     try {
-      (_produtos
-          .firstWhere((produto) =>
+      (_produtos.firstWhere((produto) =>
               produto.barcode == barcode && produto.validade == null)
             ..quantidade += quantity)
           .save();
@@ -87,8 +85,7 @@ class ProdutoProvider with ChangeNotifier {
   void acrescentBarcodeValidity(String barcode,
       {required DateTime validity, double quantity = 1}) {
     try {
-      (_produtos
-          .firstWhere((produto) => produto.validade == null
+      (_produtos.firstWhere((produto) => produto.validade == null
               ? false
               : produto.barcode == barcode &&
                   DateFormat("dd/MM/yyyy").format(produto.validade!) ==
@@ -193,35 +190,45 @@ class ProdutoProvider with ChangeNotifier {
   }
 
   void export(String extension, String separator, List<String> layout) {
+    List<String> archiveStringList = [];
+    String exportSettings = jsonEncode(<String, String>{
+      "separador": separator,
+      "ordem":
+          "${layout[0].toLowerCase().replaceAll("codico", "codigo")},${layout[1].toLowerCase().replaceAll("codico", "codigo")},${layout[2].toLowerCase().replaceAll("codico", "codigo")}"
+    });
+    print(exportSettings);
+    archiveStringList.add(exportSettings);
+
+    archiveStringList.addAll(_produtos.map<String>((product) {
+      String code =
+          extension == ".txt" ? product.barcode : "=\"${product.barcode}\"";
+
+      String data = product.validade == null
+          ? ""
+          : DateFormat("dd/MM/yyyy").format(product.validade!).toString();
+
+      String item1 = "";
+      String item2 = "";
+      String item3 = "";
+      item1 = layout[0] == "Codico"
+          ? code
+          : layout[0] == "Quant"
+              ? product.quantidade.toString()
+              : data;
+      item2 = layout[1] == "Codico"
+          ? code
+          : layout[1] == "Quant"
+              ? product.quantidade.toString()
+              : data;
+      item3 = layout[2] == "Codico"
+          ? code
+          : layout[2] == "Quant"
+              ? product.quantidade.toString()
+              : data;
+      return "$item1$separator$item2${item3.isEmpty ? settingsProvider!.validityAsk ? separator : "" : separator + item3}";
+    }).toList());
     WriteData.writeData(
-      _produtos.map<String>((product) {
-        String code =
-            extension == ".txt" ? product.barcode : "=\"${product.barcode}\"";
-
-        String data = product.validade == null
-            ? ""
-            : DateFormat("dd/MM/yyyy").format(product.validade!).toString();
-
-        String item1 = "";
-        String item2 = "";
-        String item3 = "";
-        item1 = layout[0] == "Codico"
-            ? code
-            : layout[0] == "Quant"
-                ? product.quantidade.toString()
-                : data;
-        item2 = layout[1] == "Codico"
-            ? code
-            : layout[1] == "Quant"
-                ? product.quantidade.toString()
-                : data;
-        item3 = layout[2] == "Codico"
-            ? code
-            : layout[2] == "Quant"
-                ? product.quantidade.toString()
-                : data;
-        return "$item1$separator$item2${item3.isEmpty ? settingsProvider!.validityAsk ? separator : "" : separator + item3}";
-      }).toList(),
+      archiveStringList,
       extension,
     );
   }
