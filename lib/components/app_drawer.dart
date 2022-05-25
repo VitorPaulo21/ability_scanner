@@ -6,8 +6,14 @@ import 'package:barcode_scanner/providers/produto_provider.dart';
 import 'package:barcode_scanner/providers/settings_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'link_to_site.dart';
+import 'link_to_whatsapp.dart';
+
 
 class AppDrawer extends StatefulWidget {
   const AppDrawer({Key? key}) : super(key: key);
@@ -77,7 +83,7 @@ class _AppDrawerState extends State<AppDrawer> {
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.max,
               children: [
-                ...bilityTopIcon(context),
+                abilityTopIcon(context),
                 askQuantitySwitchListile(settingsProvider),
                 const SizedBox(
                   height: 10,
@@ -258,37 +264,79 @@ class _AppDrawerState extends State<AppDrawer> {
     );
   }
 
-  List<Widget> bilityTopIcon(BuildContext context) {
-    return [
-      CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        radius: 58,
-        child: Image.asset(
-          "lib/assets/abilityIcon.png",
-          fit: BoxFit.cover,
-          height: 80,
-          width: 80,
-        ),
+  Widget abilityTopIcon(BuildContext context) {
+    return SizedBox(
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  launchUrl(Uri.parse("https://www.abilityonline.com.br/links"),
+                      mode: LaunchMode.externalApplication);
+                },
+                child: CircleAvatar(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  radius: 29,
+                  child: Image.asset(
+                    "lib/assets/abilityIcon.png",
+                    fit: BoxFit.cover,
+                    height: 40,
+                    width: 40,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  alignment: Alignment.topCenter,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Desenvolvido Por",
+                        style: Theme.of(context).textTheme.headline6,
+                      ),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      const Text("Ability Informática"),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      LinkToSite(),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      LinkToWhatsApp()
+                    ],
+                  ),
+                ),
+              )
+            ],
+          ),
+          const SizedBox(
+            height: 15,
+          ),
+        
+          const SizedBox(
+            height: 25 / 2,
+          ),
+          const Divider(
+            thickness: 1,
+          ),
+          const SizedBox(
+            height: 25 / 2,
+          )
+        ],
       ),
-      const SizedBox(
-        height: 15,
-      ),
-      const FittedBox(
-        child: Text(
-          "Ability Scanner",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
-        ),
-      ),
-      const SizedBox(
-        height: 25 / 2,
-      ),
-      const Divider(
-        thickness: 1,
-      ),
-      const SizedBox(
-        height: 25 / 2,
-      )
-    ];
+    );
   }
 
   Widget exportButton(BuildContext context, SettingsProvider settingsProvider) {
@@ -347,3 +395,7 @@ class _AppDrawerState extends State<AppDrawer> {
     );
   }
 }
+
+
+
+

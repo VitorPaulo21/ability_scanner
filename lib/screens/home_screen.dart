@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:barcode_scanner/components/app_drawer.dart';
+import 'package:barcode_scanner/components/link_to_site.dart';
+import 'package:barcode_scanner/components/link_to_whatsapp.dart';
 import 'package:barcode_scanner/models/produto.dart';
 import 'package:barcode_scanner/providers/produto_provider.dart';
 import 'package:barcode_scanner/providers/settings_provider.dart';
@@ -111,6 +113,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       icon: const Icon(Icons.exit_to_app))
               ],
+            ),
+            bottomSheet: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [LinkToSite(), LinkToWhatsApp()],
+              ),
             ),
             drawer: AppDrawer(),
             body: Column(
