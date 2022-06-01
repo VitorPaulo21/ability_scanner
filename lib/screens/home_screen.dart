@@ -6,6 +6,7 @@ import 'package:barcode_scanner/components/link_to_whatsapp.dart';
 import 'package:barcode_scanner/models/produto.dart';
 import 'package:barcode_scanner/providers/produto_provider.dart';
 import 'package:barcode_scanner/providers/settings_provider.dart';
+import 'package:barcode_scanner/utils/functions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -91,34 +92,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               actions: [
-
-                  
                 if (produtosProvider.produtos.isNotEmpty)
                   IconButton(
                       onPressed: () {
-                        produtosProvider.export(
-                            Provider.of<SettingsProvider>(context,
-                                        listen: false)
-                                    .fileFormat
-                                ? ".csv"
-                                : ".txt",
-                            Provider.of<SettingsProvider>(context,
-                                        listen: false)
-                                    .fileSeparator
-                                ? ","
-                                : ";",
-                            Provider.of<SettingsProvider>(context,
-                                    listen: false)
-                                .layoutOrganization);
+                        Functions.exportDialog(context, produtosProvider);
                       },
                       icon: const Icon(Icons.exit_to_app))
               ],
             ),
-            bottomSheet: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [LinkToSite(), LinkToWhatsApp()],
+            bottomSheet: SizedBox(
+              height: 40,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [LinkToSite(), LinkToWhatsApp()],
+                ),
               ),
             ),
             drawer: AppDrawer(),
@@ -196,7 +185,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       if (!continuousScanner || isScanning)
                         ElevatedButton(
-                          
                             onPressed: scan
                                 ? null
                                 : () {
@@ -231,7 +219,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                             );
                                           }).then((value) {
                                         setState(() {
-                                   
                                           scan = value ?? false;
                                         });
                                         Future.delayed(Duration(
@@ -256,12 +243,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                Expanded(child: listOfScannedCodes(context))
+                Expanded(child: listOfScannedCodes(context)),
+                const SizedBox(
+                  height: 40,
+                )
               ],
             )),
       ),
     );
   }
+
+  
 
   Padding listOfScannedCodes(BuildContext context) {
     List<Produto> produtos = isScanning
@@ -518,7 +510,6 @@ class _HomeScreenState extends State<HomeScreen> {
               });
               setState(() {
                 scan = false;
-                
               });
             }
           });
@@ -957,5 +948,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
-

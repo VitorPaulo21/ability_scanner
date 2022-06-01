@@ -10,15 +10,16 @@ class WriteData {
     return directory.path;
   }
 
-  static Future<File> getFile(String extension) async {
+  static Future<File> getFile(String extension, String fileName) async {
     String path = await InternalDirectory;
 
-    return File("$path/data$extension");
+    return File("$path/$fileName$extension");
   }
 
-  static void writeData(List<String> data, String extension) async {
+  static void writeData(
+      List<String> data, String extension, String fileName) async {
     String dataString = "";
-    File file = await getFile(extension);
+    File file = await getFile(extension, fileName);
     data.forEach((element) {
       dataString = "$dataString$element\n";
     });

@@ -41,10 +41,10 @@ class MyApp extends StatelessWidget {
         title: 'Ability Scanner',
         theme: ThemeData(
           colorScheme: Theme.of(context).colorScheme.copyWith(
-                primary: Color.fromRGBO(23, 24, 56, 1),
+                primary: const Color.fromRGBO(23, 24, 56, 1),
                 secondary: Colors.amber,
                 onPrimary: Colors.white,
-                onSecondary: Color.fromRGBO(23, 24, 56, 1),
+                onSecondary: const Color.fromRGBO(23, 24, 56, 1),
               ),
         ),
         debugShowCheckedModeBanner: false,

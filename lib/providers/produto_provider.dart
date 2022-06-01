@@ -14,9 +14,12 @@ class ProdutoProvider with ChangeNotifier {
   SettingsProvider? settingsProvider;
   ProdutoProvider(this.settingsProvider) {
     syncToHive();
+    
+
   }
   void syncToHive() async {
     _produtos = await Hive.box<Produto>("produtos").values.toList();
+
     notifyListeners();
   }
 
@@ -189,14 +192,15 @@ class ProdutoProvider with ChangeNotifier {
     return removed;
   }
 
-  void export(String extension, String separator, List<String> layout) {
+  void export(String extension, String separator, List<String> layout,
+      String fileName) {
     List<String> archiveStringList = [];
     String exportSettings = jsonEncode(<String, String>{
       "separador": separator,
       "ordem":
           "${layout[0].toLowerCase().replaceAll("codico", "codigo")},${layout[1].toLowerCase().replaceAll("codico", "codigo")},${layout[2].toLowerCase().replaceAll("codico", "codigo")}"
     });
-   
+
     archiveStringList.add(exportSettings);
 
     archiveStringList.addAll(_produtos.map<String>((product) {
@@ -230,6 +234,7 @@ class ProdutoProvider with ChangeNotifier {
     WriteData.writeData(
       archiveStringList,
       extension,
+      fileName
     );
   }
 

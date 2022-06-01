@@ -4,6 +4,7 @@ import 'package:barcode_scanner/components/delete_all_button.dart';
 import 'package:barcode_scanner/models/produto.dart';
 import 'package:barcode_scanner/providers/produto_provider.dart';
 import 'package:barcode_scanner/providers/settings_provider.dart';
+import 'package:barcode_scanner/utils/functions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -342,10 +343,8 @@ class _AppDrawerState extends State<AppDrawer> {
   Widget exportButton(BuildContext context, SettingsProvider settingsProvider) {
     return ElevatedButton(
         onPressed: () {
-          Provider.of<ProdutoProvider>(context, listen: false).export(
-              settingsProvider.fileFormat ? ".csv" : ".txt",
-              settingsProvider.fileSeparator ? "," : ";",
-              settingsProvider.layoutOrganization);
+          Functions.exportDialog(
+              context, Provider.of<ProdutoProvider>(context, listen: false));
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
