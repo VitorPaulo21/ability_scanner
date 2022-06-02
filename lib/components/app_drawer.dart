@@ -49,7 +49,10 @@ class _AppDrawerState extends State<AppDrawer> {
             onPressed: () {
               Navigator.of(context).pop();
             },
-            icon: Icon(Icons.arrow_back)),
+            icon: const Icon(
+              Icons.menu_open,
+              size: 25,
+            )),
       ),
       bottomSheet:
           Container(

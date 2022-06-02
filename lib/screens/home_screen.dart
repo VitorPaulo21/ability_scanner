@@ -80,17 +80,32 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Scaffold(
             key: scaffoldKey,
             appBar: AppBar(
-              title: const Text("Ability Scanner"),
-              centerTitle: true,
-              leading: InkWell(
-                onTap: () {
-                  scaffoldKey.currentState?.openDrawer();
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Image.asset("lib/assets/abilityIcon.png"),
-                ),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                      // padding: EdgeInsets.all(5),
+                      decoration: const BoxDecoration(
+                          // shape: BoxShape.circle,
+                          // gradient: LinearGradient(
+                          //   colors: [
+                          //     Color.fromRGBO(110, 193, 228, 1),
+                          //     Color.fromRGBO(97, 206, 112, 1)
+                          //   ],
+                          // ),
+                          ),
+                      child: Image.asset("lib/assets/abilityIconCutted.png",
+                          height: 25)),
+                  // SizedBox(
+                  //   width: 8,
+                  // ),
+                  const Text("bility Scanner"),
+                ],
               ),
+              centerTitle: true,
+              
               actions: [
                 if (produtosProvider.produtos.isNotEmpty)
                   IconButton(
