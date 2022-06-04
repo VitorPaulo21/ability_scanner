@@ -96,12 +96,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           //   ],
                           // ),
                           ),
-                      child: Image.asset("lib/assets/abilityIconCutted.png",
+                      child: Image.asset("lib/assets/abilityIcon.png",
                           height: 25)),
-                  // SizedBox(
-                  //   width: 8,
-                  // ),
-                  const Text("bility Scanner"),
+                  SizedBox(
+                    width: 8,
+                  ),
+                  const Text("Ability Scanner"),
                 ],
               ),
               centerTitle: true,

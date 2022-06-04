@@ -43,7 +43,7 @@ class _AppDrawerState extends State<AppDrawer> {
     return Drawer(
         child: Scaffold(
       appBar: AppBar(
-        title: Text("Ability Scanner"),
+        title: const Text("Ability Scanner"),
         centerTitle: true,
         leading: IconButton(
             onPressed: () {
