@@ -82,26 +82,26 @@ class _HomeScreenState extends State<HomeScreen> {
             appBar: AppBar(
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                      // padding: EdgeInsets.all(5),
+                      padding: EdgeInsets.all(5),
                       decoration: const BoxDecoration(
                           // shape: BoxShape.circle,
-                          // gradient: LinearGradient(
-                          //   colors: [
-                          //     Color.fromRGBO(110, 193, 228, 1),
-                          //     Color.fromRGBO(97, 206, 112, 1)
-                          //   ],
-                          // ),
+                        gradient: LinearGradient(
+                          colors: [
+                            Color.fromRGBO(110, 193, 228, 1),
+                            Color.fromRGBO(97, 206, 112, 1)
+                          ],
                           ),
-                      child: Image.asset("lib/assets/abilityIconCutted.png",
-                          height: 25)),
-                  // SizedBox(
-                  //   width: 8,
-                  // ),
-                  const Text("bility Scanner"),
+                      ),
+                      child: Image.asset("lib/assets/abilityIcon.png",
+                          height: 30)),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  const Text("Ability Scanner"),
                 ],
               ),
               centerTitle: true,
