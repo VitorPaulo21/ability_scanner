@@ -10,7 +10,7 @@ import 'package:barcode_scanner/utils/functions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
@@ -36,6 +36,31 @@ class _HomeScreenState extends State<HomeScreen> {
   String query = "";
   bool scan = false;
   Color scanColor = Colors.orange;
+  @override
+  void initState() {
+    controller?.resumeCamera();
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    controller?.resumeCamera();
+    super.didChangeDependencies();
+  }
+
+  @override
+  void deactivate() {
+    controller?.pauseCamera();
+    super.deactivate();
+  }
+
+  @override
+  void dispose() {
+    controller?.stopCamera();
+    controller?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     double avaliableScreenSpace = MediaQuery.of(context).size.height -
@@ -89,12 +114,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: EdgeInsets.all(5),
                       decoration: const BoxDecoration(
                           // shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            Color.fromRGBO(110, 193, 228, 1),
-                            Color.fromRGBO(97, 206, 112, 1)
-                          ],
-                          ),
+                          // gradient: LinearGradient(
+
+                          //   colors: [
+                          //     Color.fromRGBO(110, 193, 228, 1),
+                          //     Color.fromRGBO(97, 206, 112, 1)
+                          //   ],
+                          //   ),
                       ),
                       child: Image.asset("lib/assets/abilityIcon.png",
                           height: 30)),
@@ -711,255 +737,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget botomScanBar(double avaliableScreenSpace, BuildContext context,
-      ProdutoProvider produtosProvider) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 5),
-      height: avaliableScreenSpace * 0.085,
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            flex: 1,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(primary: Colors.green),
-              onPressed: () async {
-                FlutterBarcodeScanner.scanBarcode(
-                  "#FFBF00",
-                  "Cancel",
-                  true,
-                  ScanMode.BARCODE,
-                ).then((barcode) {
-                  if (barcode == "-1") {
-                    return;
-                  } else {
-                    showDialog(
-                        context: context,
-                        builder: (ctx) {
-                          TextEditingController addController =
-                              TextEditingController();
-                          addController.text = "1";
-                          GlobalKey<FormState> formkey = GlobalKey<FormState>();
-                          return AlertDialog(
-                            title: Text(barcode),
-                            content: Form(
-                              key: formkey,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text("Adicionar Produto:"),
-                                  const SizedBox(
-                                    height: 10,
-                                  ),
-                                  TextFormField(
-                                    controller: addController,
-                                    keyboardType:
-                                        const TextInputType.numberWithOptions(
-                                            decimal: true),
-                                    decoration: InputDecoration(
-                                      border: OutlineInputBorder(
-                                          borderRadius: const BorderRadius.all(
-                                              Radius.circular(10)),
-                                          borderSide: BorderSide(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                              width: 2)),
-                                      label: Text("Qauntidade:"),
-                                    ),
-                                    validator: (txt) {
-                                      if ((double.tryParse(txt ?? "d")) ==
-                                          null) {
-                                        return "Valor Inválido";
-                                      }
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  bool isvalid =
-                                      formkey.currentState?.validate() ?? false;
-                                  if (isvalid) {
-                                    produtosProvider.addProduto(Produto(barcode,
-                                        quantidade:
-                                            double.parse(addController.text)));
-                                  }
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text("Ok"),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text("Cancelar"),
-                              ),
-                            ],
-                          );
-                        });
-                  }
-                });
-              },
-              child: Text("Adicionar"),
-            ),
-          ),
-          const SizedBox(
-            width: 5,
-          ),
-          Expanded(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(primary: Colors.red),
-              onPressed: () async {
-                String barcode = await FlutterBarcodeScanner.scanBarcode(
-                  "#FFBF00",
-                  "Cancelar",
-                  true,
-                  ScanMode.BARCODE,
-                );
-                showDialog<Map<String, Object>>(
-                    context: context,
-                    builder: (ctx) {
-                      bool isExistentProduct = produtosProvider.produtos
-                          .any((element) => element.barcode == barcode);
-                      TextEditingController reduceController =
-                          TextEditingController();
-                      reduceController.text = "1";
-                      GlobalKey<FormState> formkey = GlobalKey<FormState>();
-                      return AlertDialog(
-                        title: Text(barcode),
-                        content: Form(
-                          key: formkey,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (!isExistentProduct)
-                                const Text("Produto não adicionado ao sistema"),
-                              if (isExistentProduct)
-                                const Text("Remover Produto:"),
-                              const SizedBox(
-                                height: 10,
-                              ),
-                              if (isExistentProduct)
-                                TextFormField(
-                                  controller: reduceController,
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                          decimal: true),
-                                  decoration: InputDecoration(
-                                    prefixText: "-",
-                                    border: OutlineInputBorder(
-                                        borderRadius: const BorderRadius.all(
-                                            Radius.circular(10)),
-                                        borderSide: BorderSide(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
-                                            width: 2)),
-                                    label: const Text("Qauntidade:"),
-                                  ),
-                                  validator: (txt) {
-                                    if ((double.tryParse(txt ?? "d")) == null) {
-                                      return "Valor Inválido";
-                                    }
-                                  },
-                                ),
-                            ],
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              bool isvalid =
-                                  formkey.currentState?.validate() ?? false;
-                              if (isvalid && isExistentProduct) {
-                                bool willRemove = produtosProvider.produtos
-                                        .firstWhere((element) =>
-                                            element.barcode == barcode)
-                                        .quantidade ==
-                                    1;
-
-                                Navigator.of(context, rootNavigator: true).pop(
-                                  {
-                                    "willRemove": willRemove,
-                                    "value":
-                                        double.parse(reduceController.text),
-                                  },
-                                );
-                              } else {
-                                Navigator.of(context, rootNavigator: true)
-                                    .pop();
-                              }
-                            },
-                            child: const Text("Ok"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context, rootNavigator: true).pop();
-                            },
-                            child: const Text("Cancelar"),
-                          ),
-                        ],
-                      );
-                    }).then((data) {
-                  if (data != null) {
-                    bool willRemove = false;
-                    if (data.containsKey("willRemove")) {
-                      if (data["willRemove"] as bool == true) {
-                        willRemove = true;
-                      }
-                    }
-                    if (willRemove) {
-                      showDialog<bool>(
-                          context: context,
-                          builder: (ctx) {
-                            return AlertDialog(
-                              title: const Text("Alerta"),
-                              content: const Text(
-                                  "A quantidade atual a ser removida ira zerar a quantidade do material no sistema deseja continuar?"),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context, rootNavigator: true)
-                                        .pop(true);
-                                  },
-                                  child: const Text("Sim"),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context, rootNavigator: true)
-                                        .pop(false);
-                                  },
-                                  child: const Text("Não"),
-                                ),
-                              ],
-                            );
-                          }).then((value) {
-                        if (value ?? false) {
-                          produtosProvider.reduceBarcode(barcode,
-                              quantity: data["value"] as double);
-                        }
-                      });
-                    } else {
-                      produtosProvider.reduceBarcode(barcode,
-                          quantity: data["value"] as double);
-                    }
-                  }
-                });
-              },
-              child: const Text("Remover"),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
