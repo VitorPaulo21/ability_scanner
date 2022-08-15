@@ -131,7 +131,9 @@ class _AppDrawerState extends State<AppDrawer> {
               Container(
                   width: 120,
                   child: Slider(
+                    
                     value: settingsProvider.fileSeparator ? 1 : 0,
+
                     onChanged: (value) {
                       settingsProvider.fileSeparator =
                           value == 0 ? false : true;
