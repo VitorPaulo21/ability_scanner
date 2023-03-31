@@ -1,20 +1,17 @@
-import 'dart:convert';
 
 import 'package:barcode_scanner/components/delete_all_button.dart';
-import 'package:barcode_scanner/models/produto.dart';
 import 'package:barcode_scanner/providers/produto_provider.dart';
 import 'package:barcode_scanner/providers/settings_provider.dart';
+import 'package:barcode_scanner/utils/app_routes.dart';
 import 'package:barcode_scanner/utils/functions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'link_to_site.dart';
 import 'link_to_whatsapp.dart';
-
 
 class AppDrawer extends StatefulWidget {
   const AppDrawer({Key? key}) : super(key: key);
@@ -37,7 +34,7 @@ class _AppDrawerState extends State<AppDrawer> {
     SettingsProvider settingsProvider = Provider.of<SettingsProvider>(
       context,
     );
- 
+
     layoutOrganization = Provider.of<SettingsProvider>(context, listen: false)
         .layoutOrganization;
     return Drawer(
@@ -54,8 +51,7 @@ class _AppDrawerState extends State<AppDrawer> {
               size: 25,
             )),
       ),
-      bottomSheet:
-          Container(
+      bottomSheet: SizedBox(
           height: 50,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -63,8 +59,7 @@ class _AppDrawerState extends State<AppDrawer> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 const Expanded(
-                  child: DeleteAllButton(
-                     ),
+                  child: DeleteAllButton(),
                 ),
                 const SizedBox(
                   width: 8,
@@ -73,7 +68,7 @@ class _AppDrawerState extends State<AppDrawer> {
               ],
             ),
           )),
-      body: Container(
+      body: SizedBox(
         height: MediaQuery.of(context).size.height -
             kToolbarHeight -
             MediaQuery.of(context).viewInsets.top -
@@ -88,6 +83,27 @@ class _AppDrawerState extends State<AppDrawer> {
               mainAxisSize: MainAxisSize.max,
               children: [
                 abilityTopIcon(context),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(
+                              color: Theme.of(context).colorScheme.primary)),
+                      leading: const Icon(FontAwesomeIcons.barcode),
+                      title: const Text("Códigos Importados"),
+                      trailing: const Icon(Icons.arrow_forward),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(AppRoutes.CODES);
+                      },
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    const Divider(),
+                  ],
+                ),
                 askQuantitySwitchListile(settingsProvider),
                 const SizedBox(
                   height: 10,
@@ -112,7 +128,7 @@ class _AppDrawerState extends State<AppDrawer> {
 
   Column exportFileSeparatorSwitchField(SettingsProvider settingsProvider) {
     return Column(children: [
-      Text("Separador do arquivo de saída"),
+      const Text("Separador do arquivo de saída"),
       Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
@@ -128,7 +144,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   fontSize: 22,
                 ),
               ),
-              Container(
+              SizedBox(
                   width: 120,
                   child: Slider(
                     value: settingsProvider.fileSeparator ? 1 : 0,
@@ -153,7 +169,6 @@ class _AppDrawerState extends State<AppDrawer> {
       const SizedBox(
         height: 10,
       ),
-      
     ]);
   }
 
@@ -208,7 +223,7 @@ class _AppDrawerState extends State<AppDrawer> {
 
   Column exportExtensionSitchField(SettingsProvider settingsProvider) {
     return Column(children: [
-      Text("Extenção de Exportação"),
+      const Text("Extenção de Exportação"),
       Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
@@ -217,8 +232,8 @@ class _AppDrawerState extends State<AppDrawer> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
             children: [
-              Text(".txt"),
-              Container(
+              const Text(".txt"),
+              SizedBox(
                 width: 120,
                 child: Consumer<SettingsProvider>(builder: (ctx, seetings, _) {
                   return Slider(
@@ -305,7 +320,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     children: [
                       Text(
                         "Desenvolvido Por",
-                        style: Theme.of(context).textTheme.headline6,
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(
                         height: 8,
@@ -314,11 +329,11 @@ class _AppDrawerState extends State<AppDrawer> {
                       const SizedBox(
                         height: 8,
                       ),
-                      LinkToSite(),
+                      const LinkToSite(),
                       const SizedBox(
                         height: 8,
                       ),
-                      LinkToWhatsApp()
+                      const LinkToWhatsApp()
                     ],
                   ),
                 ),
@@ -328,7 +343,6 @@ class _AppDrawerState extends State<AppDrawer> {
           const SizedBox(
             height: 15,
           ),
-        
           const SizedBox(
             height: 25 / 2,
           ),
@@ -363,22 +377,21 @@ class _AppDrawerState extends State<AppDrawer> {
 
   Widget Drager(String data) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 3),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey, width: 1),
-        borderRadius: BorderRadius.all(
+        borderRadius: const BorderRadius.all(
           Radius.circular(2),
         ),
       ),
       child: Draggable(
         maxSimultaneousDrags: 1,
         data: data,
-        child: Text(data),
         feedback: Container(
           width: 30,
           height: 20,
           color: Colors.grey,
-          child: FittedBox(
+          child: const FittedBox(
               child: Icon(
             Icons.abc,
             color: Colors.white,
@@ -393,11 +406,8 @@ class _AppDrawerState extends State<AppDrawer> {
             style: TextStyle(color: Colors.white),
           ),
         ),
+        child: Text(data),
       ),
     );
   }
 }
-
-
-
-

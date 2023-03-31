@@ -1,6 +1,9 @@
+import 'package:barcode_scanner/models/codigo.dart';
 import 'package:barcode_scanner/models/produto.dart';
+import 'package:barcode_scanner/providers/code_list_provider.dart';
 import 'package:barcode_scanner/providers/produto_provider.dart';
 import 'package:barcode_scanner/providers/settings_provider.dart';
+import 'package:barcode_scanner/screens/codigos_screen.dart';
 import 'package:barcode_scanner/screens/home_screen.dart';
 import 'package:barcode_scanner/utils/app_routes.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +15,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   Hive.registerAdapter(ProdutoAdapter());
+  Hive.registerAdapter(CodigoAdapter());
   await Hive.openBox<Produto>("produtos");
+  await Hive.openBox<Codigo>("codigos");
   runApp(const MyApp());
 }
 
@@ -26,13 +31,16 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<SettingsProvider>(
           create: (ctx) => SettingsProvider(),
         ),
+        ChangeNotifierProvider<CodeListProvider>(
+          create: (ctx) => CodeListProvider(),
+        ),
         ChangeNotifierProxyProvider<SettingsProvider, ProdutoProvider>(
           create: (ctx) => ProdutoProvider(null),
           update: (ctx, settings, produto) => ProdutoProvider(settings),
         ),
       ],
       child: MaterialApp(
-        supportedLocales: [const Locale("pt", "BR")],
+        supportedLocales: const [Locale("pt", "BR")],
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
@@ -49,7 +57,8 @@ class MyApp extends StatelessWidget {
         ),
         debugShowCheckedModeBanner: false,
         routes: {
-          AppRoutes.HOME: (_) => HomeScreen(),
+          AppRoutes.HOME: (_) => const HomeScreen(),
+          AppRoutes.CODES: (_) => const CodigosScreen(),
         },
       ),
     );

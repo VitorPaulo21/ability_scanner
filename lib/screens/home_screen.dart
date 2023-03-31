@@ -1,16 +1,18 @@
 import 'dart:async';
 
 import 'package:barcode_scanner/components/app_drawer.dart';
+import 'package:barcode_scanner/components/dialogs.dart';
 import 'package:barcode_scanner/components/link_to_site.dart';
 import 'package:barcode_scanner/components/link_to_whatsapp.dart';
 import 'package:barcode_scanner/models/produto.dart';
+import 'package:barcode_scanner/providers/code_list_provider.dart';
 import 'package:barcode_scanner/providers/produto_provider.dart';
 import 'package:barcode_scanner/providers/settings_provider.dart';
 import 'package:barcode_scanner/utils/functions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
@@ -30,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   GlobalKey key = GlobalKey();
   bool isAwayting = false;
   bool continuousScanner = false;
+  bool isQrMode = false;
   DateTime? validade;
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   bool isScanning = false;
@@ -98,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                       child: Image.asset("lib/assets/abilityIcon.png",
                           height: 25)),
-                  SizedBox(
+                  const SizedBox(
                     width: 8,
                   ),
                   const Text("Ability Scanner"),
@@ -107,12 +110,20 @@ class _HomeScreenState extends State<HomeScreen> {
               centerTitle: true,
               
               actions: [
+                IconButton(
+                    onPressed: () => setState(() {
+                          isQrMode = !isQrMode;
+                        }),
+                    splashRadius: 20,
+                    icon: Icon(isQrMode
+                        ? FontAwesomeIcons.barcode
+                        : Icons.qr_code_scanner)),
                 if (produtosProvider.produtos.isNotEmpty)
                   IconButton(
                       onPressed: () {
                         Functions.exportDialog(context, produtosProvider);
                       },
-                      icon: const Icon(Icons.exit_to_app))
+                      icon: const Icon(Icons.exit_to_app)),
               ],
             ),
             bottomSheet: SizedBox(
@@ -121,16 +132,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [LinkToSite(), LinkToWhatsApp()],
+                  children: const [LinkToSite(), LinkToWhatsApp()],
                 ),
               ),
             ),
-            drawer: AppDrawer(),
+            drawer: const AppDrawer(),
             body: Column(
               children: [
                 if (!isScanning) BarcodeScanner(context),
                 Padding(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   child: Row(
                     children: [
                       if (isScanning)
@@ -194,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   scan = false;
                                 });
                               },
-                              icon: Icon(Icons.search),
+                              icon: const Icon(Icons.search),
                             ),
                           ),
                         ),
@@ -220,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             rootNavigator: true)
                                                         .pop(true);
                                                   },
-                                                  child: Text("Sim"),
+                                                  child: const Text("Sim"),
                                                 ),
                                                 TextButton(
                                                   onPressed: () {
@@ -228,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             rootNavigator: true)
                                                         .pop(false);
                                                   },
-                                                  child: Text("Não"),
+                                                  child: const Text("Não"),
                                                 )
                                               ],
                                             );
@@ -304,7 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
+          SizedBox(
             width: 130,
             child: CupertinoTextField(
               textInputAction: TextInputAction.done,
@@ -316,7 +327,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Provider.of<ProdutoProvider>(context, listen: false)
                       .acrescentProduto(produtos[index]);
                 },
-                child: Icon(Icons.add),
+                child: const Icon(Icons.add),
               ),
               suffix: GestureDetector(
                 onTap: () {
@@ -356,7 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         .reduceProduto(produtos[index]);
                   }
                 },
-                child: Icon(Icons.remove),
+                child: const Icon(Icons.remove),
               ),
               textAlign: TextAlign.center,
               onSubmitted: (text) {
@@ -513,7 +524,82 @@ class _HomeScreenState extends State<HomeScreen> {
                 scanColor = Colors.green;
               });
               controller.pauseCamera();
+              if (isQrMode) {
+                playScanSound();
+                if (scanData.code?.startsWith(
+                        "https://abilityonline.com.br/downloads/") ??
+                    false) {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      bool isLoading = false;
+                      return StatefulBuilder(
+                        builder: (context, setState) => AlertDialog(
+                          title: const Text("Sucesso"),
+                          content: isLoading
+                              ? Container(
+                                height: 80,
+                                  alignment: Alignment.center,
+                                  child: const CircularProgressIndicator())
+                              : const Text(
+                                  "Um código de estoque Ability foi encontrado 😊\nDeseja importar?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () async {
+                                setState(() => isLoading = true);
+                                CodeListProvider codeListProvider =
+                                    Provider.of<CodeListProvider>(context,
+                                        listen: false);
+                                bool sucess =
+                                    await codeListProvider.downloadCodes(
+                                        url: scanData.code!, context: context);
+                                if (sucess) {
+                                  setState(() => isLoading = false);
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pop();
+                                  Dialogs.infoDialog(context, "Sucesso",
+                                      "Lista importada com sucesso");
+                                }
+                              },
+                              child: const Text("Sim"),
+                            ),
+                            TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context, rootNavigator: true)
+                                        .pop(),
+                                child: const Text("Não"))
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                } else {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text("Alerta"),
+                        content: const Text(
+                            "O QR code escaneado nao se trata de um codigo Ability, por favor tente novamente"),
+                        actions: [
+                          TextButton(
+                              onPressed: () =>
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pop(),
+                              child: const Text("Ok"))
+                        ],
+                      );
+                    },
+                  );
+                }
 
+                controller.resumeCamera();
+                setState(() {
+                  scanColor = Colors.orange;
+                  validade = null;
+                  code = "";
+                });
+              } else {
               scanDialog(
                 context,
                 scanData.code.toString(),
@@ -523,6 +609,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 });
                 controller.resumeCamera();
               });
+              }
               setState(() {
                 scan = false;
               });
@@ -531,12 +618,21 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         cameraFacing: CameraFacing.back,
         overlay: QrScannerOverlayShape(
+          
             borderRadius: 10,
             borderWidth: 5,
             borderColor: scanColor,
-            cutOutHeight: 85,
-            cutOutWidth: MediaQuery.of(context).size.width * 0.8),
-        //teste 2
+            cutOutHeight: isQrMode
+                ? MediaQuery.of(context).size.width > 170
+                    ? 170
+                    : MediaQuery.of(context).size.width
+                : 85,
+            cutOutWidth: isQrMode
+                ? MediaQuery.of(context).size.width > 170
+                    ? 170
+                    : MediaQuery.of(context).size.width
+                : MediaQuery.of(context).size.width * 0.8),
+ 
       ),
     );
   }
@@ -594,6 +690,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             if ((double.tryParse(txt ?? "d")) == null) {
                               return "Valor Inválido";
                             }
+                            return null;
                           },
                         ),
                       const SizedBox(
@@ -652,7 +749,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       Navigator.of(context)
                                                           .pop();
                                                     },
-                                                    child: Text("Selecionar")),
+                                                    child: const Text(
+                                                        "Selecionar")),
                                               ],
                                             ),
                                           ),
@@ -660,7 +758,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       });
                                 },
                                 style: OutlinedButton.styleFrom(
-                                    primary:
+                                    foregroundColor:
                                         Theme.of(context).colorScheme.primary,
                                     side: const BorderSide(color: Colors.grey),
                                     shape: const RoundedRectangleBorder(
@@ -714,7 +812,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget botomScanBar(double avaliableScreenSpace, BuildContext context,
       ProdutoProvider produtosProvider) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
       height: avaliableScreenSpace * 0.085,
       child: Row(
         mainAxisSize: MainAxisSize.max,
@@ -724,7 +822,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             flex: 1,
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(primary: Colors.green),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
               onPressed: () async {
                 FlutterBarcodeScanner.scanBarcode(
                   "#FFBF00",
@@ -751,7 +849,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text("Adicionar Produto:"),
+                                  const Text("Adicionar Produto:"),
                                   const SizedBox(
                                     height: 10,
                                   ),
@@ -769,13 +867,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   .colorScheme
                                                   .primary,
                                               width: 2)),
-                                      label: Text("Qauntidade:"),
+                                      label: const Text("Qauntidade:"),
                                     ),
                                     validator: (txt) {
                                       if ((double.tryParse(txt ?? "d")) ==
                                           null) {
                                         return "Valor Inválido";
                                       }
+                                      return null;
                                     },
                                   ),
                                 ],
@@ -807,7 +906,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                 });
               },
-              child: Text("Adicionar"),
+              child: const Text("Adicionar"),
             ),
           ),
           const SizedBox(
@@ -815,7 +914,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Expanded(
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(primary: Colors.red),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () async {
                 String barcode = await FlutterBarcodeScanner.scanBarcode(
                   "#FFBF00",
@@ -870,6 +969,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     if ((double.tryParse(txt ?? "d")) == null) {
                                       return "Valor Inválido";
                                     }
+                                    return null;
                                   },
                                 ),
                             ],
