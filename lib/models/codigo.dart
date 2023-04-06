@@ -6,7 +6,7 @@ import 'package:hive/hive.dart';
 part 'codigo.g.dart';
 
 @HiveType(typeId: 1)
-class Codigo {
+class Codigo extends HiveObject {
   @HiveField(0)
   final String barCode;
 

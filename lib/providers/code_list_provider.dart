@@ -16,7 +16,6 @@ class CodeListProvider with ChangeNotifier {
 
   void syncToHive() async {
     _codigos = Hive.box<Codigo>("codigos").values.toList();
-
     notifyListeners();
   }
 
@@ -60,5 +59,28 @@ class CodeListProvider with ChangeNotifier {
           "O servidor apresentou um erro ao processar a requisição");
       return false;
     }
+  }
+
+  void clearAll() {
+    Hive.box<Codigo>("codigos").clear();
+    _codigos.clear();
+    notifyListeners();
+  }
+
+  void clearOne(Codigo codigo) async {
+    _codigos.remove(codigo);
+    if (codigo.isInBox) {
+      await codigo.delete();
+    }
+    notifyListeners();
+  }
+
+  bool isExistentCode(String code) {
+    return _codigos.any((codigo) => codigo.barCode == code);
+  }
+
+  bool isNotExistentCode(String code) {
+    print(code);
+    return !isExistentCode(code);
   }
 }

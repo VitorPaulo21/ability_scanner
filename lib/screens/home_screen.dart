@@ -83,24 +83,28 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Scaffold(
             key: scaffoldKey,
             appBar: AppBar(
+              flexibleSpace: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.tertiary,
+                      Theme.of(context).colorScheme.secondary,
+                      Theme.of(context).colorScheme.primary,
+                    ],
+                  ),
+                ),
+              ),
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
                 children: [
-                  Container(
-                      // padding: EdgeInsets.all(5),
-                      decoration: const BoxDecoration(
-                          // shape: BoxShape.circle,
-                          // gradient: LinearGradient(
-                          //   colors: [
-                          //     Color.fromRGBO(110, 193, 228, 1),
-                          //     Color.fromRGBO(97, 206, 112, 1)
-                          //   ],
-                          // ),
-                          ),
-                      child: Image.asset("lib/assets/abilityIcon.png",
-                          height: 25)),
+                  Image.asset(
+                    "lib/assets/abilityIconCutted.png",
+                    height: 40,
+                    width: 40,
+                    fit: BoxFit.cover,
+                  ),
                   const SizedBox(
                     width: 8,
                   ),
@@ -108,7 +112,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               centerTitle: true,
-              
               actions: [
                 IconButton(
                     onPressed: () => setState(() {
@@ -180,6 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (!isScanning)
                         CupertinoSwitch(
                             value: continuousScanner,
+                            activeColor: Theme.of(context).colorScheme.primary,
                             onChanged: (value) {
                               Provider.of<SettingsProvider>(context,
                                       listen: false)
@@ -278,8 +282,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  
 
   Padding listOfScannedCodes(BuildContext context) {
     List<Produto> produtos = isScanning
@@ -526,8 +528,7 @@ class _HomeScreenState extends State<HomeScreen> {
               controller.pauseCamera();
               if (isQrMode) {
                 playScanSound();
-                if (scanData.code?.startsWith(
-                        "https://abilityonline.com.br/downloads/") ??
+                if (scanData.code?.endsWith("ability_scanner.json") ??
                     false) {
                   showDialog(
                     context: context,
@@ -538,7 +539,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           title: const Text("Sucesso"),
                           content: isLoading
                               ? Container(
-                                height: 80,
+                                  height: 80,
                                   alignment: Alignment.center,
                                   child: const CircularProgressIndicator())
                               : const Text(
@@ -600,15 +601,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   code = "";
                 });
               } else {
-              scanDialog(
-                context,
-                scanData.code.toString(),
-              ).then((value) {
-                setState(() {
-                  scanColor = Colors.orange;
-                });
-                controller.resumeCamera();
-              });
+                CodeListProvider codeListProvider =
+                    Provider.of<CodeListProvider>(context, listen: false);
+                if (codeListProvider.codigos.isNotEmpty &&
+                    codeListProvider
+                        .isNotExistentCode(scanData.code.toString())) {
+                  Dialogs.errorDialog(
+                          context,
+                          "Alerta",
+                          ''
+                              "Este codigo nao está presente na sua lista de codigos importados, nao sera possivel escanea-lo")
+                      .then((value) {
+                    setState(() {
+                      scanColor = Colors.orange;
+                    });
+                    controller.resumeCamera();
+                  });
+                } else {
+                  scanDialog(
+                    context,
+                    scanData.code.toString(),
+                  ).then((value) {
+                    setState(() {
+                      scanColor = Colors.orange;
+                    });
+                    controller.resumeCamera();
+                  });
+                }
               }
               setState(() {
                 scan = false;
@@ -618,7 +637,6 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         cameraFacing: CameraFacing.back,
         overlay: QrScannerOverlayShape(
-          
             borderRadius: 10,
             borderWidth: 5,
             borderColor: scanColor,
@@ -632,7 +650,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ? 170
                     : MediaQuery.of(context).size.width
                 : MediaQuery.of(context).size.width * 0.8),
- 
       ),
     );
   }

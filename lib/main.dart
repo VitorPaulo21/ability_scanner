@@ -23,6 +23,12 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
+  final AZUL = const Color.fromRGBO(87, 186, 250, 1);
+  final VERDE = const Color.fromRGBO(97, 214, 186, 1);
+  final AMARELO = const Color.fromRGBO(247, 199, 71, 1);
+  final PRETO = const Color.fromRGBO(3, 3, 3, 1);
+  final CINZA_1 = const Color.fromRGBO(99, 99, 99, 1);
+  final CINZA_2 = const Color.fromRGBO(204, 204, 204, 1);
 
   @override
   Widget build(BuildContext context) {
@@ -49,11 +55,12 @@ class MyApp extends StatelessWidget {
         title: 'Ability Scanner',
         theme: ThemeData(
           colorScheme: Theme.of(context).colorScheme.copyWith(
-                primary: const Color.fromRGBO(23, 24, 56, 1),
-                secondary: Colors.amber,
-                onPrimary: Colors.white,
-                onSecondary: const Color.fromRGBO(23, 24, 56, 1),
-              ),
+              primary: AZUL,
+              secondary: VERDE,
+              tertiary: AMARELO,
+              onPrimary: PRETO,
+              onSecondary: CINZA_1,
+              onTertiary: PRETO),
         ),
         debugShowCheckedModeBanner: false,
         routes: {

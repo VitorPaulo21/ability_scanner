@@ -1,4 +1,3 @@
-
 import 'package:barcode_scanner/components/delete_all_button.dart';
 import 'package:barcode_scanner/providers/produto_provider.dart';
 import 'package:barcode_scanner/providers/settings_provider.dart';
@@ -40,6 +39,16 @@ class _AppDrawerState extends State<AppDrawer> {
     return Drawer(
         child: Scaffold(
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.secondary,
+                Theme.of(context).colorScheme.primary,
+              ],
+            ),
+          ),
+        ),
         title: const Text("Ability Scanner"),
         centerTitle: true,
         leading: IconButton(
@@ -93,7 +102,10 @@ class _AppDrawerState extends State<AppDrawer> {
                               color: Theme.of(context).colorScheme.primary)),
                       leading: const Icon(FontAwesomeIcons.barcode),
                       title: const Text("Códigos Importados"),
-                      trailing: const Icon(Icons.arrow_forward),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                       onTap: () {
                         Navigator.of(context).pushNamed(AppRoutes.CODES);
                       },
@@ -184,9 +196,12 @@ class _AppDrawerState extends State<AppDrawer> {
 
           settingsProvider.layoutOrganization = layoutOrganization;
         }, builder: (ctx, candidate, rejected) {
-          return Drager(layoutOrganization[0] == "Codico"
-              ? "Código"
-              : layoutOrganization[0]);
+          return Drager(
+            layoutOrganization[0] == "Codico"
+                ? "Código"
+                : layoutOrganization[0],
+            right: true,
+          );
         }),
         const SizedBox(width: 5),
         Text(settingsProvider.fileSeparator ? "," : ";"),
@@ -199,9 +214,13 @@ class _AppDrawerState extends State<AppDrawer> {
 
           settingsProvider.layoutOrganization = layoutOrganization;
         }, builder: (ctx, candidate, rejected) {
-          return Drager(layoutOrganization[1] == "Codico"
-              ? "Código"
-              : layoutOrganization[1]);
+          return Drager(
+            layoutOrganization[1] == "Codico"
+                ? "Código"
+                : layoutOrganization[1],
+            left: true,
+            right: true,
+          );
         }),
         const SizedBox(width: 5),
         Text(settingsProvider.fileSeparator ? "," : ";"),
@@ -213,9 +232,12 @@ class _AppDrawerState extends State<AppDrawer> {
           layoutOrganization[2] = data;
           settingsProvider.layoutOrganization = layoutOrganization;
         }, builder: (ctx, candidate, rejected) {
-          return Drager(layoutOrganization[2] == "Codico"
-              ? "Código"
-              : layoutOrganization[2]);
+          return Drager(
+            layoutOrganization[2] == "Codico"
+                ? "Código"
+                : layoutOrganization[2],
+            left: true,
+          );
         }),
       ],
     );
@@ -261,6 +283,7 @@ class _AppDrawerState extends State<AppDrawer> {
     return ListTile(
       leading: CupertinoSwitch(
           value: settingsProvider.validityAsk,
+          activeColor: Theme.of(context).colorScheme.primary,
           onChanged: (value) {
             settingsProvider.validityAsk = value;
           }),
@@ -274,6 +297,7 @@ class _AppDrawerState extends State<AppDrawer> {
     return ListTile(
       leading: CupertinoSwitch(
           value: settingsProvider.quantityAsk,
+          activeColor: Theme.of(context).colorScheme.primary,
           onChanged: (value) {
             settingsProvider.quantityAsk = value;
           }),
@@ -300,14 +324,15 @@ class _AppDrawerState extends State<AppDrawer> {
                   launchUrl(Uri.parse("https://www.abilityonline.com.br/links"),
                       mode: LaunchMode.externalApplication);
                 },
-                child: CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  radius: 29,
+                child: Container(
+                  alignment: Alignment.center,
+                  height: 60,
+                  width: 60,
                   child: Image.asset(
                     "lib/assets/abilityIcon.png",
                     fit: BoxFit.cover,
-                    height: 40,
-                    width: 40,
+                    height: 60,
+                    width: 60,
                   ),
                 ),
               ),
@@ -375,7 +400,7 @@ class _AppDrawerState extends State<AppDrawer> {
         ));
   }
 
-  Widget Drager(String data) {
+  Widget Drager(String data, {bool left = false, bool right = false}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 3),
       decoration: BoxDecoration(
@@ -406,7 +431,7 @@ class _AppDrawerState extends State<AppDrawer> {
             style: TextStyle(color: Colors.white),
           ),
         ),
-        child: Text(data),
+        child: Text((left ? "< " : "") + data + (right ? " >" : "")),
       ),
     );
   }
