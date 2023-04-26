@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 
 class Dialogs {
   static Future<bool?> errorDialog(
-      context, String title, String message) async {
+      context, String title, String message,
+      {bool scrollable = false,
+      CrossAxisAlignment iconCrossAxisAlignment =
+          CrossAxisAlignment.center}) async {
     return showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text(title),
+          scrollable: scrollable,
           content: Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: iconCrossAxisAlignment,
             children: [
               const Icon(
                 Icons.warning,

@@ -37,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   bool isScanning = false;
   String query = "";
+  bool isInDelay = false;
   bool scan = false;
   Color scanColor = Colors.orange;
   @override
@@ -520,117 +521,176 @@ class _HomeScreenState extends State<HomeScreen> {
               //     }).then((value) => controller.resumeCamera());
             },
           ).onData((scanData) {
+            if (isAwayting ||
+                isInDelay ||
+                (scaffoldKey.currentState?.isDrawerOpen ?? false)) {
+              return;
+            }
             if (continuousScanner || scan) {
-              print(scan);
               setState(() {
                 scanColor = Colors.green;
               });
-              controller.pauseCamera();
-              if (isQrMode) {
-                playScanSound();
-                if (scanData.code?.endsWith("ability_scanner.json") ??
-                    false) {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      bool isLoading = false;
-                      return StatefulBuilder(
-                        builder: (context, setState) => AlertDialog(
-                          title: const Text("Sucesso"),
-                          content: isLoading
-                              ? Container(
-                                  height: 80,
-                                  alignment: Alignment.center,
-                                  child: const CircularProgressIndicator())
-                              : const Text(
-                                  "Um código de estoque Ability foi encontrado 😊\nDeseja importar?"),
+              playScanSound();
+              if (continuousScanner) {
+                isInDelay = true;
+              }
+              isAwayting = true;
+              controller.pauseCamera().then((value) {
+                if (isQrMode) {
+                  if (scanData.code?.endsWith("ability_scanner.json") ??
+                      false) {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        bool isLoading = false;
+                        return StatefulBuilder(
+                          builder: (context, setStateDialog) => AlertDialog(
+                            title: const Text("Sucesso"),
+                            content: isLoading
+                                ? Container(
+                                    height: 80,
+                                    alignment: Alignment.center,
+                                    child: const CircularProgressIndicator())
+                                : const Text(
+                                    "Um código de estoque Ability foi encontrado 😊\nDeseja importar?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () async {
+                                  setStateDialog(() => isLoading = true);
+                                  CodeListProvider codeListProvider =
+                                      Provider.of<CodeListProvider>(context,
+                                          listen: false);
+                                  bool sucess =
+                                      await codeListProvider.downloadCodes(
+                                          url: scanData.code!,
+                                          context: context);
+                                  if (sucess) {
+                                    setStateDialog(() => isLoading = false);
+                                    Navigator.of(context, rootNavigator: true)
+                                        .pop(true);
+                                    Dialogs.infoDialog(context, "Sucesso",
+                                            "Lista importada com sucesso")
+                                        .then((value) {
+                                      isAwayting = false;
+                                      if (continuousScanner) {
+                                        Timer(const Duration(seconds: 3),
+                                            () => isInDelay = false);
+                                      }
+                                      controller.resumeCamera().then((value) {
+                                        setState(() {
+                                          scanColor = Colors.orange;
+                                          validade = null;
+                                          code = "";
+                                        });
+                                      });
+                                    });
+                                  }
+                                },
+                                child: const Text("Sim"),
+                              ),
+                              TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context, rootNavigator: true)
+                                          .pop(false),
+                                  child: const Text("Não"))
+                            ],
+                          ),
+                        );
+                      },
+                    ).then((value) {
+                      if (!(value ?? false)) {
+                        if (continuousScanner) {
+                          Timer(const Duration(seconds: 3),
+                              () => isInDelay = false);
+                        }
+                        isAwayting = false;
+                        controller.resumeCamera().then((value) {
+                          setState(() {
+                            scanColor = Colors.orange;
+                            validade = null;
+                            code = "";
+                          });
+                        });
+                      }
+                    });
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text("Alerta"),
+                          content: const Text(
+                              "O QR code escaneado nao se trata de um codigo Ability, por favor tente novamente"),
                           actions: [
-                            TextButton(
-                              onPressed: () async {
-                                setState(() => isLoading = true);
-                                CodeListProvider codeListProvider =
-                                    Provider.of<CodeListProvider>(context,
-                                        listen: false);
-                                bool sucess =
-                                    await codeListProvider.downloadCodes(
-                                        url: scanData.code!, context: context);
-                                if (sucess) {
-                                  setState(() => isLoading = false);
-                                  Navigator.of(context, rootNavigator: true)
-                                      .pop();
-                                  Dialogs.infoDialog(context, "Sucesso",
-                                      "Lista importada com sucesso");
-                                }
-                              },
-                              child: const Text("Sim"),
-                            ),
                             TextButton(
                                 onPressed: () =>
                                     Navigator.of(context, rootNavigator: true)
                                         .pop(),
-                                child: const Text("Não"))
+                                child: const Text("Ok"))
                           ],
-                        ),
-                      );
-                    },
-                  );
+                        );
+                      },
+                    ).then((value) {
+                      if (continuousScanner) {
+                        Timer(const Duration(seconds: 3),
+                            () => isInDelay = false);
+                      }
+                      isAwayting = false;
+                      controller.resumeCamera().then((value) {
+                        setState(() {
+                          scanColor = Colors.orange;
+                          validade = null;
+                          code = "";
+                        });
+                      });
+                    });
+                  }
                 } else {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: const Text("Alerta"),
-                        content: const Text(
-                            "O QR code escaneado nao se trata de um codigo Ability, por favor tente novamente"),
-                        actions: [
-                          TextButton(
-                              onPressed: () =>
-                                  Navigator.of(context, rootNavigator: true)
-                                      .pop(),
-                              child: const Text("Ok"))
-                        ],
-                      );
-                    },
-                  );
-                }
+                  CodeListProvider codeListProvider =
+                      Provider.of<CodeListProvider>(context, listen: false);
+                  if (codeListProvider.codigos.isNotEmpty &&
+                      codeListProvider
+                          .isNotExistentCode(scanData.code.toString())) {
+                    Dialogs.errorDialog(
+                      context,
+                      "Alerta",
+                      "O Seguinte codigo: [ ${scanData.code} ], nao está presente na sua lista de codigos importados, nao sera possivel escanea-lo",
+                      scrollable: true,
+                      iconCrossAxisAlignment: CrossAxisAlignment.start,
+                    ).then((value) {
+                      isAwayting = false;
+                      setState(() {
+                        scanColor = Colors.orange;
+                      });
+                      controller.resumeCamera().then((value) {
+                        if (continuousScanner) {
+                          Timer(const Duration(seconds: 3),
+                              () => isInDelay = false);
+                        }
+                      });
+                    });
+                  } else {
+                    scanDialog(
+                      context,
+                      scanData.code.toString(),
+                    ).then((value) {
+                      isAwayting = false;
+                      setState(() {
+                        scanColor = Colors.orange;
+                      });
 
-                controller.resumeCamera();
-                setState(() {
-                  scanColor = Colors.orange;
-                  validade = null;
-                  code = "";
-                });
-              } else {
-                CodeListProvider codeListProvider =
-                    Provider.of<CodeListProvider>(context, listen: false);
-                if (codeListProvider.codigos.isNotEmpty &&
-                    codeListProvider
-                        .isNotExistentCode(scanData.code.toString())) {
-                  Dialogs.errorDialog(
-                          context,
-                          "Alerta",
-                          ''
-                              "Este codigo nao está presente na sua lista de codigos importados, nao sera possivel escanea-lo")
-                      .then((value) {
-                    setState(() {
-                      scanColor = Colors.orange;
+                      controller.resumeCamera().then((value) {
+                        if (continuousScanner) {
+                          Timer(const Duration(seconds: 3),
+                              () => isInDelay = false);
+                        }
+                      });
                     });
-                    controller.resumeCamera();
-                  });
-                } else {
-                  scanDialog(
-                    context,
-                    scanData.code.toString(),
-                  ).then((value) {
-                    setState(() {
-                      scanColor = Colors.orange;
-                    });
-                    controller.resumeCamera();
-                  });
+                  }
                 }
-              }
-              setState(() {
-                scan = false;
+                setState(() {
+                  scan = false;
+                });
               });
             }
           });
